@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Oraiste Beauty · Stok</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --p:#7c5cbf;--p-l:#a07dd4;--p-pale:#f0ebfa;--p-mid:#d5c5f0;
+  --cream:#faf8f5;--text:#2a1f3d;--muted:#8a7fa0;
+  --gudang:#3d8a5e;--border:#e8e0f4;
+  --danger:#c0392b;--dbg:#ffeaea;--ok:#27ae60;--gold:#b07d00;
+  --r:14px;--sh:0 2px 16px rgba(124,92,191,.09);--sb:240px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+/* ── AUTH ─────────────────────────────────── */
+#authPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;background:linear-gradient(145deg,#f0ebfa,#faf8f5);}
+.auth-logo{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--p);letter-spacing:1px;}
+.auth-sub{font-size:13px;color:var(--muted);margin:4px 0 36px;}
+.auth-card{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(124,92,191,.14);}
+.auth-tabs{display:flex;background:var(--p-pale);border-radius:10px;padding:3px;margin-bottom:20px;}
+.auth-tab{flex:1;padding:8px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
+.auth-tab.active{background:#fff;color:var(--p);box-shadow:0 1px 6px rgba(0,0,0,.08);}
+.fld{margin-bottom:13px;}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.fld input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--cream);outline:none;transition:border-color .2s;}
+.fld input:focus{border-color:var(--p-l);background:#fff;}
+.btn-primary{width:100%;padding:13px;background:var(--p);color:#fff;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;}
+.btn-primary:disabled{background:var(--p-mid);cursor:not-allowed;}
+.auth-err{color:var(--danger);font-size:13px;margin-top:10px;text-align:center;min-height:18px;}
+
+/* ── LAYOUT ───────────────────────────────── */
+#appPage{display:none;}
+.sidebar{width:var(--sb);min-width:var(--sb);background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;box-shadow:2px 0 20px rgba(124,92,191,.06);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.sb-top{padding:20px 16px 14px;border-bottom:1px solid var(--border);}
+.sb-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:2px;}
+.sb-logo-box{width:38px;height:38px;border-radius:9px;background:var(--p-pale);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
+.sb-logo-box img{width:100%;height:100%;object-fit:cover;}
+.sb-names .brand-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--p);line-height:1.2;}
+.sb-names .brand-sub{font-size:10px;color:var(--muted);}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.sb-sect{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:10px 10px 4px;}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:9px 11px;border:none;background:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;width:100%;text-align:left;transition:all .2s;margin-bottom:1px;}
+.sb-btn:hover{background:var(--p-pale);color:var(--p);}
+.sb-btn.active{background:var(--p-pale);color:var(--p);font-weight:600;}
+.sb-ic{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+.sb-badge{margin-left:auto;background:var(--danger);color:#fff;border-radius:50px;padding:1px 7px;font-size:10px;font-weight:600;}
+.sb-user{padding:12px 14px;border-top:1px solid var(--border);}
+.sb-user-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-logout-btn{width:100%;padding:7px;border:1.5px solid var(--border);border-radius:8px;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;}
+
+.main{flex:1;margin-left:var(--sb);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 10px rgba(124,92,191,.06);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.menu-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.user-pill{background:var(--p-pale);color:var(--p);padding:5px 13px;border-radius:50px;font-size:12px;font-weight:500;white-space:nowrap;}
+.search-box{position:relative;}
+.search-box input{padding:7px 13px 7px 32px;border:1.5px solid var(--border);border-radius:50px;font-family:'DM Sans',sans-serif;font-size:12px;background:var(--p-pale);color:var(--text);outline:none;width:200px;transition:width .3s,border-color .2s;}
+.search-box input:focus{border-color:var(--p-l);width:260px;background:#fff;}
+.search-box input::placeholder{color:var(--muted);}
+.search-ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);}
+
+.page-wrap{flex:1;padding:24px 24px 100px;max-width:1280px;margin:0 auto;width:100%;}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.page-hdr h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* BOTTOM NAV (mobile) */
+.bot-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:none;z-index:100;box-shadow:0 -2px 14px rgba(124,92,191,.08);}
+.bnav-btn{flex:1;padding:9px 4px 7px;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:500;color:var(--muted);cursor:pointer;}
+.bnav-btn.active{color:var(--p);}
+.bnav-ic{font-size:19px;line-height:1;}
+.mob-fab{position:fixed;bottom:68px;right:14px;width:48px;height:48px;border-radius:50%;background:var(--p);color:#fff;border:none;font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:99;box-shadow:0 4px 20px rgba(124,92,191,.4);}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;line-height:1;}
+.stat-val.red{color:var(--danger);}
+.stat-val.green{color:var(--ok);}
+.stat-val.gold{color:var(--gold);}
+
+/* FILTER BAR */
+.fbar{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.chip{padding:6px 13px;border-radius:50px;font-size:11px;font-weight:500;border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.chip.on{background:var(--p);color:#fff;border-color:var(--p);}
+.finp{padding:7px 12px;border:1.5px solid var(--border);border-radius:50px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text);background:#fff;outline:none;cursor:pointer;}
+.finp:focus{border-color:var(--p-l);}
+
+/* VIEW TOGGLE */
+.view-toggle{display:flex;background:var(--p-pale);border-radius:9px;padding:3px;gap:2px;}
+.vt-btn{padding:6px 12px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
+.vt-btn.active{background:#fff;color:var(--p);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+/* PRODUCT CARD GRID */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.prod-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--sh);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;}
+.prod-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(124,92,191,.14);}
+.prod-img{width:100%;height:110px;border-radius:9px;background:var(--p-pale);display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:9px;overflow:hidden;}
+.prod-img img{width:100%;height:100%;object-fit:cover;}
+.prod-name{font-size:13px;font-weight:600;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prod-sku{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.prod-var{font-size:11px;color:var(--muted);margin-bottom:7px;}
+.prod-prices{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px;}
+.ptag{font-size:10px;padding:2px 6px;border-radius:50px;background:var(--p-pale);color:var(--p);}
+.stock-single{text-align:center;background:#eaf3ee;border-radius:9px;padding:8px;}
+.stock-single .sn{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;line-height:1;}
+.stock-single .sn.ok{color:var(--gudang);}
+.stock-single .sn.low{color:#e67e22;}
+.stock-single .sn.zero{color:var(--danger);}
+.stock-single .sl{font-size:10px;color:var(--muted);}
+.prod-badge{position:absolute;top:9px;right:9px;font-size:9px;padding:3px 7px;border-radius:50px;}
+.prod-badge.tipis{background:#fff3e0;color:#e67e22;}
+.prod-badge.habis{background:var(--dbg);color:var(--danger);}
+
+/* TABLE */
+.tbl-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 13px;background:var(--p-pale);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.tbl td{padding:10px 13px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#faf8ff;}
+.tbl-empty{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.tbl .acts{display:flex;gap:5px;}
+
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;padding:3px 8px;border-radius:50px;font-size:10px;font-weight:500;}
+.bdg.lunas{background:#e6f9ee;color:var(--ok);}
+.bdg.belum{background:var(--dbg);color:var(--danger);}
+.bdg.overdue{background:#fff3e0;color:#e67e22;}
+.bdg.gudang{background:#eaf3ee;color:var(--gudang);}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s;}
+.btn-p{background:var(--p);color:#fff;}
+.btn-p:hover{background:var(--p-l);}
+.btn-p:disabled{background:var(--p-mid);cursor:not-allowed;}
+.btn-g{background:#e6f9ee;color:var(--ok);border:1.5px solid #b2eacb;}
+.btn-d{background:var(--dbg);color:var(--danger);border:1.5px solid #ffd5d5;}
+.btn-s{background:#fff;color:var(--muted);border:1.5px solid var(--border);}
+.btn-s:hover{background:var(--p-pale);color:var(--p);}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:7px;}
+
+/* SHEETS / MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(42,31,61,.5);z-index:500;align-items:flex-end;justify-content:center;}
+.overlay.show{display:flex;}
+.sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:700px;padding:0 0 28px;max-height:94vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.32,1.2,.5,1);position:relative;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:10;}
+.sheet-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;}
+.sheet-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--p-pale);color:var(--p);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.sbody{padding:16px 20px;}
+.flabel{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;display:block;margin-top:2px;}
+.fi{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--cream);outline:none;margin-bottom:11px;transition:border-color .2s;}
+.fi:focus{border-color:var(--p-l);background:#fff;}
+.fi:disabled{background:#f5f5f5;color:var(--muted);cursor:not-allowed;}
+select.fi{cursor:pointer;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px;}
+.price-box{background:var(--p-pale);border-radius:11px;padding:11px 12px;}
+.price-box-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.price-box input{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:7px 9px;font-family:'DM Sans',sans-serif;font-size:13px;background:#fff;color:var(--text);outline:none;}
+.price-box input:focus{border-color:var(--p-l);}
+.sbox{background:var(--p-pale);border-radius:11px;padding:11px 12px;margin-bottom:11px;}
+.sbox-lbl{font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;margin-bottom:7px;}
+.sbox-ctrl{display:flex;align-items:center;gap:6px;}
+.s-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--p-mid);background:#fff;color:var(--p);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.s-num{flex:1;text-align:center;border:none;background:transparent;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--text);outline:none;width:100%;}
+.btn-row{display:flex;gap:7px;margin-top:6px;}
+.bcl{flex:1;padding:11px;border-radius:10px;background:#fff;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);}
+.bsv{flex:2;padding:11px;border:none;border-radius:10px;background:var(--p);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.bsv:disabled{background:var(--p-mid);}
+.bdel{width:100%;padding:10px;border:1.5px solid #ffd5d5;border-radius:10px;background:#fff;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;margin-top:7px;}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+
+/* DETAIL STOCK */
+.dbox{border-radius:11px;padding:14px;text-align:center;background:#eaf3ee;margin-bottom:12px;}
+.dbox-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;line-height:1;color:var(--gudang);}
+.dbox-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+.adj-row{display:flex;align-items:center;gap:8px;background:var(--p-pale);border-radius:10px;padding:9px 12px;margin-bottom:7px;}
+.adj-loc{font-size:12px;font-weight:500;flex-shrink:0;}
+.adj-ctrl{display:flex;align-items:center;gap:7px;flex:1;}
+.adj-inp{flex:1;text-align:center;border:1.5px solid var(--border);border-radius:7px;padding:6px;font-size:15px;font-weight:500;background:#fff;color:var(--text);outline:none;}
+.q-btn{width:32px;height:32px;border-radius:7px;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.q-btn.m{background:var(--dbg);color:var(--danger);}
+.q-btn.p{background:#eaf3ee;color:var(--gudang);}
+
+/* INVOICE ITEMS */
+.src-grid{display:grid;grid-template-columns:1fr;gap:0;margin-bottom:11px;}
+.src-btn{padding:10px 14px;border-radius:10px;border:2px solid var(--border);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);transition:all .2s;width:100%;text-align:left;display:flex;align-items:center;gap:8px;}
+.src-btn.sel{border-color:var(--gudang);background:#eaf3ee;color:var(--gudang);}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:11px;}
+.pm-btn{padding:8px;border-radius:9px;border:2px solid var(--border);background:#fff;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--muted);transition:all .2s;}
+.pm-btn.active{border-color:var(--p);background:var(--p-pale);color:var(--p);}
+.pm-btn.full{grid-column:span 2;}
+.item-row{display:flex;align-items:center;gap:5px;background:var(--p-pale);border-radius:9px;padding:7px 9px;margin-bottom:5px;}
+.item-row select{flex:1;border:1.5px solid var(--border);border-radius:7px;padding:6px 7px;font-family:'DM Sans',sans-serif;font-size:11px;background:#fff;color:var(--text);outline:none;min-width:0;}
+.item-qty{width:46px;border:1.5px solid var(--border);border-radius:7px;padding:6px 5px;font-family:'DM Sans',sans-serif;font-size:12px;text-align:center;background:#fff;color:var(--text);outline:none;}
+.item-price{width:88px;border:1.5px solid var(--border);border-radius:7px;padding:6px 7px;font-family:'DM Sans',sans-serif;font-size:11px;background:#fff;color:var(--text);outline:none;}
+.item-del{background:var(--dbg);border:none;border-radius:7px;width:26px;height:26px;color:var(--danger);cursor:pointer;font-size:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.add-item-btn{width:100%;padding:8px;border:1.5px dashed var(--p-mid);border-radius:9px;background:#fff;color:var(--p);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;margin-bottom:11px;}
+.inv-total-sec{background:var(--p-pale);border-radius:11px;padding:12px 14px;margin-bottom:11px;}
+.itrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.itrow:last-child{border-top:1px solid var(--p-mid);padding-top:5px;margin-top:5px;margin-bottom:0;}
+.itlbl{font-size:12px;color:var(--muted);}
+.itval{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;}
+.itval.big{font-size:22px;color:var(--p);}
+.disc-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.disc-tag{background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all .15s;}
+.disc-tag.active{background:var(--p);color:#fff;border-color:var(--p);}
+.disc-inp{width:90px;border:1.5px solid var(--border);border-radius:7px;padding:5px 9px;font-family:'DM Sans',sans-serif;font-size:12px;background:#fff;color:var(--text);outline:none;text-align:right;}
+
+/* PELUNASAN */
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.pay-btn{padding:14px;border-radius:11px;border:2px solid var(--border);background:#fff;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;}
+.pay-btn.sel{border-color:var(--p);background:var(--p-pale);color:var(--p);}
+
+/* PRINT */
+#printArea{display:none;position:fixed;inset:0;background:#fff;z-index:700;overflow-y:auto;padding:28px;}
+.print-actions{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.print-actions .btn{padding:9px 16px;}
+.pa-wa{background:#25d366;color:#fff;}
+.pa-pr{background:var(--p);color:#fff;}
+.pa-bk{background:var(--cream);color:var(--muted);border:1.5px solid var(--border);}
+.print-doc{max-width:720px;margin:0 auto;}
+.print-brand{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--p);}
+.print-brand small{font-family:'DM Sans',sans-serif;font-size:10px;color:var(--muted);font-weight:400;display:block;margin-top:1px;}
+hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.ptbl{width:100%;border-collapse:collapse;margin-bottom:14px;}
+.ptbl th{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 0;border-bottom:1px solid var(--border);text-align:left;}
+.ptbl td{padding:7px 0;font-size:12px;border-bottom:1px solid #f0ebfa;}
+.ptbl .tr{text-align:right;}
+.ptbl .tc{text-align:center;}
+.total-box{background:var(--p-pale);border-radius:10px;padding:12px 16px;display:inline-block;float:right;}
+.total-box .tl{font-size:10px;color:var(--muted);}
+.total-box .tv{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--p);}
+.stamp{display:inline-block;padding:5px 14px;border-radius:7px;font-size:12px;font-weight:600;border:2px solid;}
+.stamp.lunas{color:var(--ok);border-color:var(--ok);}
+.stamp.belum{color:var(--danger);border-color:var(--danger);}
+.ttd-row{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:32px;}
+.ttd-box{text-align:center;}
+.ttd-line{border-top:1px solid var(--text);margin-top:48px;padding-top:6px;font-size:11px;color:var(--muted);}
+
+/* SETTINGS */
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;}
+.set-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--sh);}
+.set-card h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.logo-prev{width:72px;height:72px;border-radius:10px;background:var(--p-pale);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;margin-bottom:10px;}
+.logo-prev img{width:100%;height:100%;object-fit:cover;}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);}
+.tog-row:last-child{border-bottom:none;}
+.tog-lbl{font-size:12px;color:var(--text);}
+.tog{position:relative;width:38px;height:20px;}
+.tog input{opacity:0;width:0;height:0;}
+.tog-sl{position:absolute;inset:0;background:var(--border);border-radius:10px;cursor:pointer;transition:.3s;}
+.tog-sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.tog input:checked+.tog-sl{background:var(--p);}
+.tog input:checked+.tog-sl:before{transform:translateX(18px);}
+
+/* DISCOUNT PAGE */
+.disc-page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.disc-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between;}
+.disc-card-info .name{font-size:13px;font-weight:600;}
+.disc-card-info .val{font-size:12px;color:var(--muted);}
+.disc-card-acts{display:flex;gap:5px;}
+
+/* MOBILE SIDEBAR OVERLAY */
+.mob-sb-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:190;}
+.mob-sb-bg.show{display:block;}
+
+/* NOTIFICATION DOT */
+.notif-dot{width:7px;height:7px;background:var(--danger);border-radius:50%;display:inline-block;margin-left:6px;vertical-align:middle;}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;}
+.spinner{width:26px;height:26px;border:3px solid var(--p-mid);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:9px 18px;border-radius:50px;font-size:12px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);max-width:280px;}
+.toast.show{opacity:1;}
+
+/* RESPONSIVE */
+@media(max-width:767px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .page-wrap{padding:16px 14px 90px;}
+  .topbar{padding:11px 14px;}
+  .menu-btn{display:flex!important;}
+  .bot-nav{display:flex;}
+  .mob-fab.show{display:flex;}
+  .user-pill{display:none;}
+  .search-box input{width:140px;}
+  .search-box input:focus{width:180px;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .two{grid-template-columns:1fr;}
+  .three{grid-template-columns:1fr 1fr;}
+}
+@media print{
+  .print-actions,.bot-nav,.sidebar,.topbar,.main{display:none!important;}
+  #printArea{position:static;padding:0;}
+  body>*:not(#printArea){display:none!important;}
+  .print-doc{max-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authPage">
+  <div class="auth-logo">Oraiste Beauty</div>
+  <div class="auth-sub">Manajemen Stok & Penjualan</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tLogin" onclick="swAuth('login')">Masuk</button>
+      <button class="auth-tab" id="tReg" onclick="swAuth('register')">Daftar</button>
+    </div>
+    <div id="loginForm">
+      <div class="fld"><label>Email</label><input type="email" id="lEmail" autocomplete="email" placeholder="email@kamu.com"></div>
+      <div class="fld"><label>Password</label><input type="password" id="lPass" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Masuk</button>
+    </div>
+    <div id="regForm" style="display:none">
+      <div class="fld"><label>Nama</label><input type="text" id="rName" placeholder="Nama kamu"></div>
+      <div class="fld"><label>Email</label><input type="email" id="rEmail" placeholder="email@kamu.com"></div>
+      <div class="fld"><label>Password</label><input type="password" id="rPass" placeholder="Min. 6 karakter"></div>
+      <button class="btn-primary" id="regBtn" onclick="doRegister()">Daftar</button>
+    </div>
+    <div class="auth-err" id="authErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appPage">
+  <div class="mob-sb-bg" id="mobBg" onclick="closeSb()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-top">
+      <div class="sb-logo-row">
+        <div class="sb-logo-box" id="sbLogoBox">✨</div>
+        <div class="sb-names">
+          <div class="brand-name" id="sbBrandName">Oraiste Beauty</div>
+          <div class="brand-sub" id="sbBrandSub">Beauty House</div>
+        </div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sect">Utama</div>
+      <button class="sb-btn active" id="sb-stock" onclick="gotoView('stock')"><span class="sb-ic">📦</span>Stok Produk</button>
+      <button class="sb-btn" id="sb-inv" onclick="gotoView('inv')"><span class="sb-ic">🧾</span>Faktur<span id="overdueTag"></span></button>
+      <button class="sb-btn" id="sb-pl" onclick="gotoView('pl')"><span class="sb-ic">📊</span>Laba Rugi</button>
+      <div class="sb-sect">Data</div>
+      <button class="sb-btn" id="sb-disc" onclick="gotoView('disc')"><span class="sb-ic">🏷️</span>Potongan Harga</button>
+      <button class="sb-btn" id="sb-cust" onclick="gotoView('cust')"><span class="sb-ic">👥</span>Customer</button>
+      <button class="sb-btn" id="sb-log" onclick="gotoView('log')"><span class="sb-ic">📋</span>Riwayat Stok</button>
+      <div class="sb-sect">Akun</div>
+      <button class="sb-btn" id="sb-settings" onclick="gotoView('settings')"><span class="sb-ic">⚙️</span>Pengaturan</button>
+    </div>
+    <div class="sb-user">
+      <div class="sb-user-name">👤 <span id="sbUserName">–</span></div>
+      <button class="sb-logout-btn" onclick="confirmLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainArea">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn" onclick="toggleSb()">☰</button>
+        <div class="topbar-title" id="topTitle">Stok Produk</div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-box" id="searchBox">
+          <span class="search-ic">🔍</span>
+          <input type="search" id="searchInp" placeholder="Cari produk / SKU..." oninput="renderProducts()" autocomplete="off">
+        </div>
+        <div class="user-pill" id="userPill">–</div>
+      </div>
+    </div>
+
+    <div class="page-wrap">
+
+      <!-- STOCK VIEW -->
+      <div id="vStock">
+        <div class="page-hdr">
+          <h2>📦 Stok Produk</h2>
+          <div class="hdr-actions">
+            <div class="view-toggle">
+              <button class="vt-btn active" id="vt-card" onclick="setViewMode('card')">▦ Card</button>
+              <button class="vt-btn" id="vt-list" onclick="setViewMode('list')">≡ List</button>
+            </div>
+            <button class="btn btn-p" onclick="openAdd()">+ Tambah Produk</button>
+          </div>
+        </div>
+        <div class="stats-row" id="stockStats"></div>
+        <div class="fbar">
+          <button class="chip on" id="f-all" onclick="setFilter('all')">Semua</button>
+          <button class="chip" id="f-low" onclick="setFilter('low')">⚠️ Tipis (≤5)</button>
+          <button class="chip" id="f-zero" onclick="setFilter('zero')">❌ Habis</button>
+        </div>
+        <div id="prodArea"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- INVOICE VIEW -->
+      <div id="vInv" style="display:none">
+        <div class="page-hdr">
+          <h2>🧾 Faktur Penjualan</h2>
+          <button class="btn btn-p" onclick="openCreateInv()">+ Buat Faktur</button>
+        </div>
+        <div class="fbar" id="invFbar">
+          <button class="chip on" id="if-all" onclick="setInvF('all')">Semua</button>
+          <button class="chip" id="if-lunas" onclick="setInvF('lunas')">✅ Lunas</button>
+          <button class="chip" id="if-belum" onclick="setInvF('belum')">⏳ Belum</button>
+          <button class="chip" id="if-overdue" onclick="setInvF('overdue')">🔴 Jatuh Tempo</button>
+          <input type="date" class="finp" id="invFrom" onchange="renderInvoices()">
+          <input type="date" class="finp" id="invTo" onchange="renderInvoices()">
+          <select class="finp" id="invCustF" onchange="renderInvoices()"><option value="">Semua Customer</option></select>
+        </div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>No. Faktur</th><th>Customer</th><th>Tgl</th><th>Termin</th><th>Jatuh Tempo</th><th style="text-align:right">Total</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="invBody"><tr><td colspan="8" class="tbl-empty"><div class="spinner"></div></td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- PL VIEW -->
+      <div id="vPl" style="display:none">
+        <div class="page-hdr"><h2>📊 Laba Rugi</h2>
+          <button class="btn btn-p" onclick="exportPlPdf()">📄 Export PDF</button>
+        </div>
+        <div class="fbar">
+          <button class="chip on" id="pt-day" onclick="setPeriod('day')">Hari Ini</button>
+          <button class="chip" id="pt-week" onclick="setPeriod('week')">Minggu Ini</button>
+          <button class="chip" id="pt-month" onclick="setPeriod('month')">Bulan Ini</button>
+          <input type="date" class="finp" id="plFrom" onchange="setPeriod('custom')">
+          <input type="date" class="finp" id="plTo" onchange="setPeriod('custom')">
+          <select class="finp" id="plCustF" onchange="renderPL()"><option value="">Semua Customer</option></select>
+        </div>
+        <div class="stats-row" id="plStats"></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--sh)">
+          <canvas id="plChart" height="100"></canvas>
+        </div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Faktur</th><th>Customer</th><th>Tgl</th><th style="text-align:right">Pendapatan</th><th style="text-align:right">Modal</th><th style="text-align:right">Laba</th></tr></thead>
+          <tbody id="plBody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- DISCOUNT PAGE -->
+      <div id="vDisc" style="display:none">
+        <div class="page-hdr"><h2>🏷️ Potongan Harga</h2><button class="btn btn-p" onclick="openAddDisc()">+ Tambah Potongan</button></div>
+        <div class="disc-page-grid" id="discGrid"></div>
+      </div>
+
+      <!-- CUSTOMER VIEW -->
+      <div id="vCust" style="display:none">
+        <div class="page-hdr"><h2>👥 Customer</h2><button class="btn btn-p" onclick="openAddCust()">+ Tambah Customer</button></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Nama</th><th>Nama Toko</th><th>No. HP</th><th>Alamat</th><th>Total Faktur</th><th>Aksi</th></tr></thead>
+          <tbody id="custBody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- LOG VIEW -->
+      <div id="vLog" style="display:none">
+        <div class="page-hdr"><h2>📋 Riwayat Stok</h2></div>
+        <div class="fbar">
+          <button class="chip on" id="lf-all" onclick="setLogF('all')">Semua</button>
+          <button class="chip" id="lf-add" onclick="setLogF('add')">➕ Masuk</button>
+          <button class="chip" id="lf-reduce" onclick="setLogF('reduce')">➖ Keluar</button>
+        </div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Produk</th><th>Tipe</th><th style="text-align:right">Jumlah</th><th>Stok</th><th>Oleh</th><th>Waktu</th><th>Catatan</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- SETTINGS VIEW -->
+      <div id="vSettings" style="display:none">
+        <div class="page-hdr"><h2>⚙️ Pengaturan</h2></div>
+        <div class="settings-grid">
+          <div class="set-card">
+            <h3>🏪 Identitas Toko</h3>
+            <label class="flabel">Logo (URL gambar)</label>
+            <input class="fi" id="setLogo" placeholder="https://..." oninput="prevLogo()">
+            <div class="logo-prev" id="logoPrev">✨</div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Nama Toko</span><label class="tog"><input type="checkbox" id="togStoreName" checked onchange="applySettings()"><span class="tog-sl"></span></label></div>
+            <label class="flabel" style="margin-top:8px">Nama Toko</label>
+            <input class="fi" id="setName" placeholder="Oraiste Beauty">
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Tagline</span><label class="tog"><input type="checkbox" id="togTagline" checked onchange="applySettings()"><span class="tog-sl"></span></label></div>
+            <label class="flabel" style="margin-top:8px">Tagline / Sub-nama</label>
+            <input class="fi" id="setSub" placeholder="Beauty House">
+            <label class="flabel">Alamat Toko</label>
+            <input class="fi" id="setAddr" placeholder="Jl. ...">
+            <label class="flabel">No. HP / WA</label>
+            <input class="fi" id="setPhone" placeholder="08xx...">
+            <button class="btn btn-p" onclick="saveSettings()" style="width:100%">Simpan</button>
+          </div>
+          <div class="set-card">
+            <h3>🧾 Layout Faktur</h3>
+            <label class="flabel">Footer / Catatan Default</label>
+            <input class="fi" id="setFooter" placeholder="Terima kasih!">
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Logo di Faktur</span><label class="tog"><input type="checkbox" id="togLogo" checked><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Alamat Toko</span><label class="tog"><input type="checkbox" id="togAddr" checked><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan No. HP</span><label class="tog"><input type="checkbox" id="togPhone" checked><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Alamat Customer</span><label class="tog"><input type="checkbox" id="togCustAddr" checked><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Termin & Jatuh Tempo</span><label class="tog"><input type="checkbox" id="togTermin" checked><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Status Lunas/Belum</span><label class="tog"><input type="checkbox" id="togStatus" checked><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><span class="tog-lbl">Tampilkan Tanda Tangan</span><label class="tog"><input type="checkbox" id="togTTD" checked><span class="tog-sl"></span></label></div>
+            <button class="btn btn-p" onclick="saveSettings()" style="width:100%;margin-top:12px">Simpan</button>
+          </div>
+          <div class="set-card">
+            <h3>👤 Ubah Akun</h3>
+            <label class="flabel">Nama Tampilan</label>
+            <input class="fi" id="setUserName" placeholder="Nama kamu">
+            <label class="flabel">Password Baru (kosongkan jika tidak diubah)</label>
+            <input class="fi" type="password" id="setNewPass" placeholder="Min. 6 karakter">
+            <label class="flabel">Konfirmasi Password Baru</label>
+            <input class="fi" type="password" id="setConfPass" placeholder="Ulangi password">
+            <button class="btn btn-p" onclick="saveAccount()" style="width:100%">Simpan Akun</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-wrap -->
+
+    <!-- MOBILE NAV -->
+    <div class="bot-nav">
+      <button class="bnav-btn active" id="bn-stock" onclick="gotoView('stock')"><span class="bnav-ic">📦</span>Stok</button>
+      <button class="bnav-btn" id="bn-inv" onclick="gotoView('inv')"><span class="bnav-ic">🧾</span>Faktur</button>
+      <button class="bnav-btn" id="bn-pl" onclick="gotoView('pl')"><span class="bnav-ic">📊</span>Laba</button>
+      <button class="bnav-btn" id="bn-cust" onclick="gotoView('cust')"><span class="bnav-ic">👥</span>Customer</button>
+      <button class="bnav-btn" id="bn-settings" onclick="gotoView('settings')"><span class="bnav-ic">⚙️</span>Setting</button>
+    </div>
+    <button class="mob-fab" id="mobFab" onclick="onFab()">+</button>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea">
+  <div class="print-actions">
+    <button class="btn pa-bk" onclick="closePrint()">← Kembali</button>
+    <button class="btn pa-wa" onclick="shareWA()">💬 Share WA</button>
+    <button class="btn pa-pr" onclick="window.print()">🖨️ Cetak / PDF</button>
+  </div>
+  <div class="print-doc" id="printContent"></div>
+</div>
+
+<!-- ADD/EDIT PRODUCT -->
+<div class="overlay" id="oAdd" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title" id="addTitle">Tambah Produk</div><button class="sheet-close" onclick="closeSheet('oAdd')">✕</button></div>
+    <div class="sbody">
+      <input type="hidden" id="editId">
+      <div class="two">
+        <div><label class="flabel">Nama Produk *</label><input class="fi" id="inpName" placeholder="Serum Niacinamide"></div>
+        <div><label class="flabel">SKU / Kode</label><input class="fi" id="inpSku" placeholder="OB-001"></div>
+      </div>
+      <div class="two">
+        <div><label class="flabel">Varian (opsional)</label><input class="fi" id="inpVar" placeholder="30ml"></div>
+        <div><label class="flabel">Satuan</label><select class="fi" id="inpUnit"><option>PCS</option><option>Lusin</option><option>Pack</option><option>Box</option><option>Botol</option><option>Sachet</option></select></div>
+      </div>
+      <label class="flabel">Foto Produk (URL)</label>
+      <input class="fi" id="inpImg" placeholder="https://i.imgur.com/xxx.jpg" oninput="prevProdImg()">
+      <div id="imgPrevWrap" style="display:none;margin-bottom:11px"><img id="imgPrevEl" style="width:80px;height:80px;border-radius:9px;object-fit:cover"></div>
+      <label class="flabel">Harga</label>
+      <div class="price-grid">
+        <div class="price-box"><div class="price-box-lbl">💰 Modal</div><input type="number" id="inpModal" placeholder="0" min="0"></div>
+        <div class="price-box"><div class="price-box-lbl">🛒 Shopee</div><input type="number" id="inpPShopee" placeholder="0" min="0"></div>
+        <div class="price-box"><div class="price-box-lbl">📦 Grosir</div><input type="number" id="inpPGrosir" placeholder="0" min="0"></div>
+        <div class="price-box"><div class="price-box-lbl">🏪 Satuan</div><input type="number" id="inpPSatuan" placeholder="0" min="0"></div>
+      </div>
+      <label class="flabel">Stok Gudang</label>
+      <div class="sbox">
+        <div class="sbox-lbl">🏠 Gudang</div>
+        <div class="sbox-ctrl"><button class="s-btn" onclick="adj('inpStock',-1)">−</button><input class="s-num" type="number" id="inpStock" value="0" min="0"><button class="s-btn" onclick="adj('inpStock',1)">+</button></div>
+      </div>
+      <div class="btn-row"><button class="bcl" onclick="closeSheet('oAdd')">Batal</button><button class="bsv" id="saveProdBtn" onclick="saveProduct()">Simpan</button></div>
+      <button class="bdel" id="delProdBtn" style="display:none" onclick="deleteProduct()">🗑 Hapus Produk</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL / ADJ -->
+<div class="overlay" id="oDetail" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title" id="dTitle">Detail</div><button class="sheet-close" onclick="closeSheet('oDetail')">✕</button></div>
+    <div class="sbody">
+      <input type="hidden" id="dId">
+      <div id="dImgWrap" style="display:none;margin-bottom:12px"><img id="dImg" style="width:100%;max-height:160px;object-fit:cover;border-radius:11px"></div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px" id="dMeta"></div>
+      <div class="dbox"><div class="dbox-num" id="dStock">0</div><div class="dbox-lbl" id="dUnit">pcs</div></div>
+      <div id="dPrices" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--border)">Update Stok Cepat</div>
+      <div class="adj-row">
+        <div class="adj-loc">🏠 Gudang</div>
+        <div class="adj-ctrl"><button class="q-btn m" onclick="quickAdj(-1)">−</button><input class="adj-inp" type="number" id="adjAmt" value="1" min="1"><button class="q-btn p" onclick="quickAdj(1)">+</button></div>
+      </div>
+      <input class="fi" id="adjNote" placeholder="Catatan (opsional)" style="margin-top:6px">
+      <div class="btn-row">
+        <button class="bcl" onclick="closeSheet('oDetail')">Tutup</button>
+        <button class="btn btn-s btn-sm" style="padding:9px 14px" onclick="dupProduct()">📋 Duplikat</button>
+        <button class="bsv" onclick="openEditFromDetail()">✏️ Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE INVOICE -->
+<div class="overlay" id="oInv" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title">Buat Faktur</div><button class="sheet-close" onclick="closeSheet('oInv')">✕</button></div>
+    <div class="sbody">
+      <label class="flabel">Termin Pembayaran</label>
+      <select class="fi" id="invTermin">
+        <option value="COD">COD (Bayar di Tempat)</option>
+        <option value="7Hari">7 Hari</option>
+        <option value="15Hari">15 Hari</option>
+        <option value="30Hari">30 Hari</option>
+      </select>
+      <label class="flabel">Mode Harga</label>
+      <div class="pm-grid">
+        <button class="pm-btn active" id="pm-shopee" onclick="setPriceMode('shopee')">🛒 Harga Shopee</button>
+        <button class="pm-btn" id="pm-grosir" onclick="setPriceMode('grosir')">📦 Harga Grosir</button>
+        <button class="pm-btn" id="pm-satuan" onclick="setPriceMode('satuan')">🏪 Harga Satuan</button>
+        <button class="pm-btn full" id="pm-custom" onclick="setPriceMode('custom')">✏️ Custom (input manual)</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label class="flabel" style="margin:0">Customer</label>
+        <button class="btn btn-s btn-sm" onclick="openAddCustInline()">+ Tambah Baru</button>
+      </div>
+      <select class="fi" id="invCustSel" onchange="onCustSel()"><option value="">-- Pilih customer atau isi manual --</option></select>
+      <div class="two">
+        <div><label class="flabel">Nama Customer *</label><input class="fi" id="invCName" placeholder="Nama customer"></div>
+        <div><label class="flabel">Nama Toko</label><input class="fi" id="invCToko" placeholder="Opsional"></div>
+      </div>
+      <label class="flabel">Alamat</label>
+      <input class="fi" id="invCAddr" placeholder="Alamat pengiriman">
+      <label class="flabel">Produk</label>
+      <div id="invItemsCon"></div>
+      <button class="add-item-btn" onclick="addInvItem()">+ Tambah Produk</button>
+      <label class="flabel">Potongan Harga</label>
+      <div class="disc-row" id="discSelRow"></div>
+      <div class="inv-total-sec">
+        <div class="itrow"><span class="itlbl">Subtotal</span><span class="itval" id="invSubDisp">Rp 0</span></div>
+        <div class="itrow"><span class="itlbl">Total Potongan</span><span class="itval" style="color:var(--danger)" id="invDiscDisp">− Rp 0</span></div>
+        <div class="itrow"><span class="itlbl" style="font-weight:700">Total</span><span class="itval big" id="invTotalDisp">Rp 0</span></div>
+      </div>
+      <label class="flabel">Catatan</label>
+      <input class="fi" id="invNote" placeholder="Opsional">
+      <div class="btn-row"><button class="bcl" onclick="closeSheet('oInv')">Batal</button><button class="bsv" id="invSaveBtn" onclick="saveInvoice()">Simpan Faktur</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK ADD CUSTOMER (from invoice) -->
+<div class="overlay" id="oInlineCust" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title">Tambah Customer Baru</div><button class="sheet-close" onclick="closeSheet('oInlineCust')">✕</button></div>
+    <div class="sbody">
+      <label class="flabel">Nama Customer *</label><input class="fi" id="icName" placeholder="Nama lengkap">
+      <label class="flabel">No. HP / WA *</label><input class="fi" id="icPhone" placeholder="08xx..." type="tel">
+      <label class="flabel">Nama Toko (opsional)</label><input class="fi" id="icToko" placeholder="Nama toko">
+      <label class="flabel">Alamat</label><input class="fi" id="icAddr" placeholder="Alamat lengkap">
+      <div class="btn-row"><button class="bcl" onclick="closeSheet('oInlineCust')">Batal</button><button class="bsv" onclick="saveInlineCust()">Simpan & Pilih</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- PELUNASAN -->
+<div class="overlay" id="oLunas" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title">💳 Proses Pelunasan</div><button class="sheet-close" onclick="closeSheet('oLunas')">✕</button></div>
+    <div class="sbody">
+      <input type="hidden" id="lunasId">
+      <div id="lunasInfo" style="background:var(--p-pale);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;"></div>
+      <label class="flabel">Metode Pembayaran</label>
+      <div class="pay-grid">
+        <button class="pay-btn sel" id="pay-cash" onclick="selPay('Cash')">💵 Cash</button>
+        <button class="pay-btn" id="pay-transfer" onclick="selPay('Transfer')">🏦 Transfer</button>
+      </div>
+      <input type="hidden" id="payMethod" value="Cash">
+      <label class="flabel">Catatan</label>
+      <input class="fi" id="lunasNote" placeholder="Contoh: Transfer BCA">
+      <div class="btn-row"><button class="bcl" onclick="closeSheet('oLunas')">Batal</button><button class="bsv btn-g" style="border:none;color:var(--ok)" onclick="processLunas()">✅ Tandai Lunas</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER SHEET -->
+<div class="overlay" id="oCust" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title" id="custTitle">Tambah Customer</div><button class="sheet-close" onclick="closeSheet('oCust')">✕</button></div>
+    <div class="sbody">
+      <input type="hidden" id="custEditId">
+      <label class="flabel">Nama Customer *</label><input class="fi" id="custName" placeholder="Nama lengkap">
+      <label class="flabel">No. HP / WA *</label><input class="fi" id="custPhone" placeholder="08xx..." type="tel">
+      <label class="flabel">Nama Toko (opsional)</label><input class="fi" id="custToko" placeholder="Nama toko">
+      <label class="flabel">Alamat</label><input class="fi" id="custAddr" placeholder="Alamat lengkap">
+      <div class="btn-row"><button class="bcl" onclick="closeSheet('oCust')">Batal</button><button class="bsv" onclick="saveCustomer()">Simpan</button></div>
+      <button class="bdel" id="custDel" style="display:none" onclick="deleteCust()">🗑 Hapus Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISCOUNT SHEET -->
+<div class="overlay" id="oDisc" onclick="preventBgClose(event)">
+  <div class="sheet">
+    <div class="sheet-head"><div class="sheet-title" id="discTitle">Tambah Potongan</div><button class="sheet-close" onclick="closeSheet('oDisc')">✕</button></div>
+    <div class="sbody">
+      <input type="hidden" id="discEditId">
+      <label class="flabel">Nama Potongan</label><input class="fi" id="discName" placeholder="Contoh: Diskon Member, Promo 10%">
+      <div class="two">
+        <div>
+          <label class="flabel">Tipe</label>
+          <select class="fi" id="discType">
+            <option value="nominal">Nominal (Rp)</option>
+            <option value="persen">Persen (%)</option>
+          </select>
+        </div>
+        <div><label class="flabel">Nilai</label><input class="fi" type="number" id="discVal" placeholder="0" min="0"></div>
+      </div>
+      <div class="btn-row"><button class="bcl" onclick="closeSheet('oDisc')">Batal</button><button class="bsv" onclick="saveDiscount()">Simpan</button></div>
+      <button class="bdel" id="discDel" style="display:none" onclick="deleteDiscount()">🗑 Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SURL='https://jcpwqoburhrjpvuexbjm.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjcHdxb2J1cmhyanB2dWV4YmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5OTI1NzksImV4cCI6MjA5MTU2ODU3OX0.lcSygQm1vew3Fr6sff_gSCmXKrP3HP-_2WRCq-q5n9c';
+const SB=supabase.createClient(SURL,SKEY);
+
+let me=null,myName='';
+let products=[],logs=[],invoices=[],customers=[],discounts=[];
+let activeFilter='all',logFilter='all',invFilter='all',plPeriod='day';
+let detailId=null,currentInvId=null,viewMode='card';
+let invItems=[{id:Date.now(),productId:'',qty:1,price:0}];
+let invSource='gudang',priceMode='shopee',selectedDiscs=[];
+let plChart=null;
+let cfg={storeName:'Oraiste Beauty',storeSub:'Beauty House',storeAddr:'',storePhone:'',logoUrl:'',invFooter:'Terima kasih atas kepercayaan Anda!',togLogo:true,togAddr:true,togPhone:true,togCustAddr:true,togTermin:true,togStatus:true,togTTD:true,togStoreName:true,togTagline:true};
+let currentView='stock';
+
+// ── AUTH ───────────────────────────────────────
+function swAuth(m){
+  document.getElementById('loginForm').style.display=m==='login'?'block':'none';
+  document.getElementById('regForm').style.display=m==='register'?'block':'none';
+  document.getElementById('tLogin').classList.toggle('active',m==='login');
+  document.getElementById('tReg').classList.toggle('active',m==='register');
+  document.getElementById('authErr').textContent='';
+}
+async function doLogin(){
+  const e=document.getElementById('lEmail').value.trim(),p=document.getElementById('lPass').value;
+  const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='Memuat...';
+  const{data,error}=await SB.auth.signInWithPassword({email:e,password:p});
+  btn.disabled=false;btn.textContent='Masuk';
+  if(error){document.getElementById('authErr').textContent='Email atau password salah.';return;}
+  await initApp(data.user);
+}
+async function doRegister(){
+  const name=document.getElementById('rName').value.trim(),email=document.getElementById('rEmail').value.trim(),pass=document.getElementById('rPass').value;
+  if(!name){document.getElementById('authErr').textContent='Nama wajib diisi.';return;}
+  if(pass.length<6){document.getElementById('authErr').textContent='Password min. 6 karakter.';return;}
+  const btn=document.getElementById('regBtn');btn.disabled=true;btn.textContent='Mendaftar...';
+  const{data,error}=await SB.auth.signUp({email,password:pass,options:{data:{name}}});
+  btn.disabled=false;btn.textContent='Daftar';
+  if(error){document.getElementById('authErr').textContent=error.message;return;}
+  await SB.from('users').upsert({id:data.user.id,name,email});
+  toast('Akun dibuat! Silakan masuk.');swAuth('login');
+}
+function confirmLogout(){
+  if(!confirm('Yakin ingin keluar?'))return;
+  SB.auth.signOut().then(()=>location.reload());
+}
+async function initApp(user){
+  me=user;
+  const{data:u}=await SB.from('users').select('name').eq('id',user.id).single();
+  myName=u?.name||user.user_metadata?.name||user.email.split('@')[0];
+  document.getElementById('userPill').textContent=myName;
+  document.getElementById('sbUserName').textContent=myName;
+  document.getElementById('setUserName').value=myName;
+  document.getElementById('authPage').style.display='none';
+  document.getElementById('appPage').style.display='block';
+  loadCfg();
+  await Promise.all([loadProducts(),loadLogs(),loadInvoices(),loadCustomers(),loadDiscounts()]);
+  checkOverdue();
+}
+
+// ── SETTINGS ───────────────────────────────────
+function loadCfg(){
+  const s=JSON.parse(localStorage.getItem('ob_cfg')||'{}');
+  cfg={...cfg,...s};applyCfg();
+}
+function applyCfg(){
+  const n=cfg.togStoreName!==false?cfg.storeName||'Oraiste Beauty':'';
+  const s=cfg.togTagline!==false?cfg.storeSub||'Beauty House':'';
+  document.getElementById('sbBrandName').textContent=n||'Oraiste Beauty';
+  document.getElementById('sbBrandSub').textContent=s;
+  document.getElementById('sbBrandSub').style.display=s?'block':'none';
+  const lb=document.getElementById('sbLogoBox');
+  lb.innerHTML=cfg.logoUrl?`<img src="${cfg.logoUrl}" onerror="this.style.display='none'">`:'✨';
+  // Populate settings form
+  ['setLogo','setName','setSub','setAddr','setPhone','setFooter'].forEach(id=>{
+    const map={setLogo:'logoUrl',setName:'storeName',setSub:'storeSub',setAddr:'storeAddr',setPhone:'storePhone',setFooter:'invFooter'};
+    const el=document.getElementById(id);if(el)el.value=cfg[map[id]]||'';
+  });
+  ['togStoreName','togTagline','togLogo','togAddr','togPhone','togCustAddr','togTermin','togStatus','togTTD'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.checked=cfg[id]!==false;
+  });
+  const lp=document.getElementById('logoPrev');
+  if(lp)lp.innerHTML=cfg.logoUrl?`<img src="${cfg.logoUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='✨'">`:'✨';
+}
+function saveSettings(){
+  cfg.logoUrl=document.getElementById('setLogo').value.trim();
+  cfg.storeName=document.getElementById('setName').value.trim()||'Oraiste Beauty';
+  cfg.storeSub=document.getElementById('setSub').value.trim();
+  cfg.storeAddr=document.getElementById('setAddr').value.trim();
+  cfg.storePhone=document.getElementById('setPhone').value.trim();
+  cfg.invFooter=document.getElementById('setFooter').value.trim();
+  ['togStoreName','togTagline','togLogo','togAddr','togPhone','togCustAddr','togTermin','togStatus','togTTD'].forEach(id=>{
+    cfg[id]=document.getElementById(id).checked;
+  });
+  localStorage.setItem('ob_cfg',JSON.stringify(cfg));
+  applyCfg();toast('Pengaturan disimpan ✓');
+}
+async function saveAccount(){
+  const name=document.getElementById('setUserName').value.trim();
+  const np=document.getElementById('setNewPass').value;
+  const cp=document.getElementById('setConfPass').value;
+  if(np&&np!==cp){toast('Password tidak cocok');return;}
+  if(np&&np.length<6){toast('Password min. 6 karakter');return;}
+  if(name&&name!==myName){
+    await SB.from('users').update({name}).eq('id',me.id);
+    myName=name;document.getElementById('userPill').textContent=myName;document.getElementById('sbUserName').textContent=myName;
+  }
+  if(np){await SB.auth.updateUser({password:np});}
+  toast('Akun diperbarui ✓');document.getElementById('setNewPass').value='';document.getElementById('setConfPass').value='';
+}
+function prevLogo(){
+  const url=document.getElementById('setLogo').value.trim();
+  const lp=document.getElementById('logoPrev');
+  lp.innerHTML=url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='✨'">`:'✨';
+}
+
+// ── SIDEBAR / NAV ──────────────────────────────
+function toggleSb(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobBg').classList.toggle('show');
+}
+function closeSb(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobBg').classList.remove('show');
+}
+const viewMeta={stock:{title:'Stok Produk',fab:true},inv:{title:'Faktur Penjualan',fab:true},pl:{title:'Laba Rugi',fab:false},disc:{title:'Potongan Harga',fab:true},cust:{title:'Customer',fab:true},log:{title:'Riwayat Stok',fab:false},settings:{title:'Pengaturan',fab:false}};
+function gotoView(v){
+  currentView=v;
+  const allV=['stock','inv','pl','disc','cust','log','settings'];
+  allV.forEach(x=>{
+    const el=document.getElementById('v'+x.charAt(0).toUpperCase()+x.slice(1));
+    if(el)el.style.display=x===v?'block':'none';
+    const sb=document.getElementById('sb-'+x);if(sb)sb.classList.toggle('active',x===v);
+    const bn=document.getElementById('bn-'+x);if(bn)bn.classList.toggle('active',x===v);
+  });
+  document.getElementById('topTitle').textContent=viewMeta[v]?.title||'';
+  document.getElementById('searchBox').style.display=v==='stock'?'flex':'none';
+  const fab=document.getElementById('mobFab');
+  fab.classList.toggle('show',viewMeta[v]?.fab);
+  closeSb();
+  if(v==='log')loadLogs();
+  if(v==='inv'){loadInvoices();populateCustFilter();}
+  if(v==='pl'){renderPL();populatePlCustFilter();}
+  if(v==='cust')renderCustomers();
+  if(v==='disc')renderDiscounts();
+  if(v==='settings')applyCfg();
+}
+function onFab(){
+  if(currentView==='stock')openAdd();
+  else if(currentView==='inv')openCreateInv();
+  else if(currentView==='cust')openAddCust();
+  else if(currentView==='disc')openAddDisc();
+}
+
+// ── DATA LOAD ──────────────────────────────────
+async function loadProducts(){
+  const{data}=await SB.from('products').select('*').order('name');
+  products=data||[];renderProducts();renderStockStats();
+}
+async function loadLogs(){
+  const{data}=await SB.from('stock_logs').select('*,products(name,variant)').order('created_at',{ascending:false}).limit(300);
+  logs=data||[];renderLogs();
+}
+async function loadInvoices(){
+  const{data}=await SB.from('invoices').select('*,invoice_items(*,products(name,variant,price_modal,unit))').order('created_at',{ascending:false}).limit(300);
+  invoices=data||[];renderInvoices();checkOverdue();
+}
+async function loadCustomers(){
+  const{data}=await SB.from('customers').select('*').order('name');
+  customers=data||[];renderCustomers();populateCustSelects();
+}
+async function loadDiscounts(){
+  const{data}=await SB.from('discounts').select('*').order('name');
+  discounts=data||[];renderDiscounts();renderDiscSelRow();
+}
+
+// ── PRODUCTS ───────────────────────────────────
+function setViewMode(m){
+  viewMode=m;
+  document.getElementById('vt-card').classList.toggle('active',m==='card');
+  document.getElementById('vt-list').classList.toggle('active',m==='list');
+  renderProducts();
+}
+function renderStockStats(){
+  const total=products.reduce((s,p)=>s+p.stock,0);
+  const tipis=products.filter(p=>p.stock>0&&p.stock<=5).length;
+  const habis=products.filter(p=>p.stock===0).length;
+  document.getElementById('stockStats').innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">Total SKU</div><div class="stat-val">${products.length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Total Stok</div><div class="stat-val">${total}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Stok Tipis</div><div class="stat-val red">${tipis}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Stok Habis</div><div class="stat-val red">${habis}</div></div>`;
+}
+function renderProducts(){
+  const q=(document.getElementById('searchInp')?.value||'').toLowerCase();
+  const area=document.getElementById('prodArea');
+  let f=products.filter(p=>{
+    const mq=p.name.toLowerCase().includes(q)||(p.variant||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q);
+    if(!mq)return false;
+    if(activeFilter==='low')return p.stock>0&&p.stock<=5;
+    if(activeFilter==='zero')return p.stock===0;
+    return true;
+  }).sort((a,b)=>a.stock-b.stock);
+  if(!f.length){area.innerHTML=`<div style="text-align:center;padding:48px;color:var(--muted)">📦<br>${q?'Tidak ditemukan.':'Belum ada produk.'}</div>`;return;}
+  if(viewMode==='list'){
+    area.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Produk</th><th>SKU</th><th>Satuan</th><th style="text-align:right">Stok</th><th style="text-align:right">Modal</th><th style="text-align:right">Shopee</th><th style="text-align:right">Grosir</th><th>Aksi</th></tr></thead><tbody>${f.map(p=>{
+      const sc=p.stock===0?'zero':p.stock<=5?'low':'ok';
+      return `<tr onclick="openDetail('${p.id}')" style="cursor:pointer">
+        <td><div style="font-weight:600">${p.name}</div>${p.variant?`<div style="font-size:11px;color:var(--muted)">${p.variant}</div>`:''}</td>
+        <td style="color:var(--muted);font-size:11px">${p.sku||'–'}</td>
+        <td>${p.unit||'PCS'}</td>
+        <td style="text-align:right"><span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--${sc==='ok'?'gudang':sc==='low'?'gold':'danger'})">${p.stock}</span></td>
+        <td style="text-align:right;color:var(--muted);font-size:11px">${p.price_modal?formatRp(p.price_modal):'–'}</td>
+        <td style="text-align:right;font-size:11px">${p.price_shopee?formatRp(p.price_shopee):'–'}</td>
+        <td style="text-align:right;font-size:11px">${p.price_grosir?formatRp(p.price_grosir):'–'}</td>
+        <td class="acts"><button class="btn btn-s btn-sm" onclick="event.stopPropagation();openEdit('${p.id}')">✏️</button></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+  }else{
+    area.innerHTML=`<div class="prod-grid">${f.map(p=>{
+      const sc=p.stock===0?'zero':p.stock<=5?'low':'ok';
+      const badge=p.stock===0?'<div class="prod-badge habis">Habis</div>':p.stock<=5?'<div class="prod-badge tipis">Tipis</div>':'';
+      const imgH=p.image_url?`<img src="${p.image_url}" onerror="this.style.display='none'">`:`<span>${emj(p.name)}</span>`;
+      const tags=[];
+      if(p.price_shopee)tags.push(`<span class="ptag">🛒 ${formatRp(p.price_shopee)}</span>`);
+      if(p.price_grosir)tags.push(`<span class="ptag">📦 ${formatRp(p.price_grosir)}</span>`);
+      return `<div class="prod-card" onclick="openDetail('${p.id}')">${badge}
+        <div class="prod-img">${imgH}</div>
+        <div class="prod-name">${p.name}</div>
+        ${p.sku?`<div class="prod-sku">SKU: ${p.sku}</div>`:''}
+        ${p.variant?`<div class="prod-var">${p.variant} · ${p.unit||'PCS'}</div>`:`<div class="prod-var">${p.unit||'PCS'}</div>`}
+        ${tags.length?`<div class="prod-prices">${tags.join('')}</div>`:''}
+        <div class="stock-single"><div class="sn ${sc}">${p.stock}</div><div class="sl">Stok Gudang</div></div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+}
+function setFilter(f){activeFilter=f;['all','low','zero'].forEach(x=>document.getElementById('f-'+x).classList.toggle('on',x===f));renderProducts();renderStockStats();}
+
+// ADD/EDIT PRODUCT
+function openAdd(){
+  document.getElementById('addTitle').textContent='Tambah Produk';
+  document.getElementById('editId').value='';
+  ['inpName','inpSku','inpVar','inpImg','inpModal','inpPShopee','inpPGrosir','inpPSatuan'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('inpUnit').value='PCS';
+  document.getElementById('inpStock').value='0';
+  document.getElementById('delProdBtn').style.display='none';
+  document.getElementById('imgPrevWrap').style.display='none';
+  document.getElementById('oAdd').classList.add('show');
+}
+function openEdit(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  document.getElementById('addTitle').textContent='Edit Produk';
+  document.getElementById('editId').value=id;
+  document.getElementById('inpName').value=p.name;
+  document.getElementById('inpSku').value=p.sku||'';
+  document.getElementById('inpVar').value=p.variant||'';
+  document.getElementById('inpUnit').value=p.unit||'PCS';
+  document.getElementById('inpImg').value=p.image_url||'';
+  document.getElementById('inpModal').value=p.price_modal||'';
+  document.getElementById('inpPShopee').value=p.price_shopee||'';
+  document.getElementById('inpPGrosir').value=p.price_grosir||'';
+  document.getElementById('inpPSatuan').value=p.price_satuan||'';
+  document.getElementById('inpStock').value=p.stock||0;
+  document.getElementById('delProdBtn').style.display='block';
+  const iw=document.getElementById('imgPrevWrap');
+  if(p.image_url){document.getElementById('imgPrevEl').src=p.image_url;iw.style.display='block';}else{iw.style.display='none';}
+  document.getElementById('oAdd').classList.add('show');
+}
+function prevProdImg(){
+  const url=document.getElementById('inpImg').value.trim();
+  const w=document.getElementById('imgPrevWrap');
+  if(url){document.getElementById('imgPrevEl').src=url;w.style.display='block';}else{w.style.display='none';}
+}
+async function saveProduct(){
+  const name=document.getElementById('inpName').value.trim();
+  if(!name){toast('Nama produk wajib diisi');return;}
+  const stock=parseInt(document.getElementById('inpStock').value)||0;
+  const payload={name,sku:document.getElementById('inpSku').value.trim()||null,variant:document.getElementById('inpVar').value.trim()||null,unit:document.getElementById('inpUnit').value,image_url:document.getElementById('inpImg').value.trim()||null,stock,price_modal:parseInt(document.getElementById('inpModal').value)||null,price_shopee:parseInt(document.getElementById('inpPShopee').value)||null,price_grosir:parseInt(document.getElementById('inpPGrosir').value)||null,price_satuan:parseInt(document.getElementById('inpPSatuan').value)||null,updated_at:new Date().toISOString()};
+  const editId=document.getElementById('editId').value;
+  const btn=document.getElementById('saveProdBtn');btn.disabled=true;
+  if(editId){
+    const old=products.find(x=>x.id===editId);
+    await SB.from('products').update(payload).eq('id',editId);
+    if(old&&old.stock!==stock)await addLog(editId,'gudang',stock>old.stock?'add':'reduce',Math.abs(stock-old.stock),old.stock,stock,'Edit produk');
+    toast('Disimpan ✓');
+  }else{
+    const{data}=await SB.from('products').insert(payload).select().single();
+    if(data&&stock>0)await addLog(data.id,'gudang','add',stock,0,stock,'Produk baru');
+    toast('Produk ditambahkan ✓');
+  }
+  btn.disabled=false;closeSheet('oAdd');await loadProducts();
+}
+async function deleteProduct(){
+  const id=document.getElementById('editId').value;
+  if(!confirm('Hapus produk ini?'))return;
+  await SB.from('products').delete().eq('id',id);
+  closeSheet('oAdd');await loadProducts();toast('Dihapus');
+}
+
+// DETAIL
+function openDetail(id){
+  detailId=id;const p=products.find(x=>x.id===id);if(!p)return;
+  document.getElementById('dTitle').textContent=p.name+(p.variant?` · ${p.variant}`:'');
+  document.getElementById('dId').value=id;
+  document.getElementById('dStock').textContent=p.stock||0;
+  document.getElementById('dUnit').textContent=p.unit||'PCS';
+  document.getElementById('adjAmt').value=1;document.getElementById('adjNote').value='';
+  const iw=document.getElementById('dImgWrap');
+  if(p.image_url){document.getElementById('dImg').src=p.image_url;iw.style.display='block';}else{iw.style.display='none';}
+  document.getElementById('dMeta').innerHTML=[p.sku?`<span class="ptag">SKU: ${p.sku}</span>`:'',`<span class="ptag">${p.unit||'PCS'}</span>`].filter(Boolean).join('');
+  const tags=[];
+  if(p.price_modal)tags.push(`<span class="ptag">💰 ${formatRp(p.price_modal)}</span>`);
+  if(p.price_shopee)tags.push(`<span class="ptag">🛒 ${formatRp(p.price_shopee)}</span>`);
+  if(p.price_grosir)tags.push(`<span class="ptag">📦 ${formatRp(p.price_grosir)}</span>`);
+  if(p.price_satuan)tags.push(`<span class="ptag">🏪 ${formatRp(p.price_satuan)}</span>`);
+  document.getElementById('dPrices').innerHTML=tags.join('');
+  document.getElementById('oDetail').classList.add('show');
+}
+async function quickAdj(dir){
+  const p=products.find(x=>x.id===detailId);if(!p)return;
+  const amt=parseInt(document.getElementById('adjAmt').value)||1;
+  const note=document.getElementById('adjNote').value.trim();
+  const before=p.stock,after=Math.max(0,before+dir*amt),real=Math.abs(after-before);
+  if(!real)return;
+  await SB.from('products').update({stock:after,updated_at:new Date().toISOString()}).eq('id',detailId);
+  await addLog(detailId,'gudang',dir>0?'add':'reduce',real,before,after,note);
+  p.stock=after;document.getElementById('dStock').textContent=after;
+  renderProducts();renderStockStats();toast(`${dir>0?'+':'−'}${real} stok`);
+}
+async function addLog(pid,loc,type,amt,b,a,note=''){
+  await SB.from('stock_logs').insert({product_id:pid,user_name:myName,location:loc,change_type:type,amount:amt,stock_before:b,stock_after:a,note:note||null});
+}
+function openEditFromDetail(){closeSheet('oDetail');setTimeout(()=>openEdit(detailId),200);}
+async function dupProduct(){
+  const p=products.find(x=>x.id===detailId);if(!p)return;
+  const{data}=await SB.from('products').insert({...p,id:undefined,name:p.name+' (Copy)',sku:p.sku?p.sku+'-2':null,created_at:undefined,updated_at:new Date().toISOString()}).select().single();
+  closeSheet('oDetail');await loadProducts();
+  if(data)setTimeout(()=>openEdit(data.id),300);
+  toast('Produk diduplikat — silakan edit');
+}
+
+// ── LOG ────────────────────────────────────────
+function renderLogs(){
+  const tbody=document.getElementById('logBody');if(!tbody)return;
+  let f=logFilter==='add'?logs.filter(l=>l.change_type==='add'):logFilter==='reduce'?logs.filter(l=>l.change_type==='reduce'):logs;
+  if(!f.length){tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">Belum ada riwayat.</td></tr>';return;}
+  tbody.innerHTML=f.map(l=>{
+    const pname=l.products?l.products.name+(l.products.variant?` · ${l.products.variant}`:''):'–';
+    const isAdd=l.change_type==='add';
+    const dt=new Date(l.created_at).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<tr><td>${pname}</td><td style="color:${isAdd?'var(--ok)':'var(--danger)'};font-weight:600">${isAdd?'➕ Masuk':'➖ Keluar'}</td><td style="text-align:right;font-weight:700;color:${isAdd?'var(--ok)':'var(--danger)'}">${isAdd?'+':'−'}${l.amount}</td><td style="color:var(--muted);font-size:11px">${l.stock_before}→${l.stock_after}</td><td>${l.user_name}</td><td style="color:var(--muted);font-size:11px;white-space:nowrap">${dt}</td><td style="color:var(--muted);font-size:11px">${l.note||''}</td></tr>`;
+  }).join('');
+}
+function setLogF(f){logFilter=f;['all','add','reduce'].forEach(x=>document.getElementById('lf-'+x).classList.toggle('on',x===f));renderLogs();}
+
+// ── CUSTOMERS ──────────────────────────────────
+function renderCustomers(){
+  const tbody=document.getElementById('custBody');if(!tbody)return;
+  if(!customers.length){tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">Belum ada customer.</td></tr>';return;}
+  tbody.innerHTML=customers.map(c=>{
+    const tx=invoices.filter(i=>i.customer_name===c.name).length;
+    return `<tr><td><div style="font-weight:600">${c.name}</div></td><td>${c.store_name||'–'}</td><td>${c.phone||'–'}</td><td style="color:var(--muted);font-size:11px">${c.address||'–'}</td><td>${tx} faktur</td><td class="acts"><button class="btn btn-s btn-sm" onclick="openEditCust('${c.id}')">✏️</button><button class="btn btn-d btn-sm" onclick="deleteCustById('${c.id}')">🗑</button></td></tr>`;
+  }).join('');
+}
+function populateCustSelects(){
+  const opts='<option value="">-- Pilih customer atau isi manual --</option>'+customers.map(c=>`<option value="${c.id}" data-n="${c.name}" data-t="${c.store_name||''}" data-a="${c.address||''}">${c.name}${c.store_name?' — '+c.store_name:''}</option>`).join('');
+  ['invCustSel'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+function populateCustFilter(){
+  const sel=document.getElementById('invCustF');if(!sel)return;
+  sel.innerHTML='<option value="">Semua Customer</option>'+customers.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+}
+function populatePlCustFilter(){
+  const sel=document.getElementById('plCustF');if(!sel)return;
+  sel.innerHTML='<option value="">Semua Customer</option>'+customers.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+}
+function onCustSel(){
+  const sel=document.getElementById('invCustSel'),opt=sel.options[sel.selectedIndex];
+  const isSelected=!!opt.value;
+  document.getElementById('invCName').value=opt.getAttribute('data-n')||'';
+  document.getElementById('invCToko').value=opt.getAttribute('data-t')||'';
+  document.getElementById('invCAddr').value=opt.getAttribute('data-a')||'';
+  ['invCName','invCToko','invCAddr'].forEach(id=>{document.getElementById(id).disabled=isSelected;});
+}
+function openAddCust(){
+  document.getElementById('custTitle').textContent='Tambah Customer';
+  document.getElementById('custEditId').value='';
+  ['custName','custPhone','custToko','custAddr'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('custDel').style.display='none';
+  document.getElementById('oCust').classList.add('show');
+}
+function openEditCust(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  document.getElementById('custTitle').textContent='Edit Customer';
+  document.getElementById('custEditId').value=id;
+  document.getElementById('custName').value=c.name;
+  document.getElementById('custPhone').value=c.phone||'';
+  document.getElementById('custToko').value=c.store_name||'';
+  document.getElementById('custAddr').value=c.address||'';
+  document.getElementById('custDel').style.display='block';
+  document.getElementById('oCust').classList.add('show');
+}
+async function saveCustomer(){
+  const name=document.getElementById('custName').value.trim();
+  const phone=document.getElementById('custPhone').value.trim();
+  if(!name){toast('Nama customer wajib diisi');return;}
+  if(!phone){toast('No. HP wajib diisi');return;}
+  const payload={name,phone,store_name:document.getElementById('custToko').value.trim()||null,address:document.getElementById('custAddr').value.trim()||null};
+  const eid=document.getElementById('custEditId').value;
+  if(eid)await SB.from('customers').update(payload).eq('id',eid);
+  else await SB.from('customers').insert(payload);
+  closeSheet('oCust');await loadCustomers();toast('Customer disimpan ✓');
+}
+async function deleteCust(){
+  const id=document.getElementById('custEditId').value;
+  await deleteCustById(id);closeSheet('oCust');
+}
+async function deleteCustById(id){
+  if(!confirm('Hapus customer ini?'))return;
+  await SB.from('customers').delete().eq('id',id);
+  await loadCustomers();toast('Customer dihapus');
+}
+
+// INLINE CUSTOMER (from invoice)
+function openAddCustInline(){document.getElementById('oInlineCust').classList.add('show');}
+async function saveInlineCust(){
+  const name=document.getElementById('icName').value.trim();
+  const phone=document.getElementById('icPhone').value.trim();
+  if(!name){toast('Nama wajib diisi');return;}
+  if(!phone){toast('No. HP wajib diisi');return;}
+  const{data}=await SB.from('customers').insert({name,phone,store_name:document.getElementById('icToko').value.trim()||null,address:document.getElementById('icAddr').value.trim()||null}).select().single();
+  await loadCustomers();
+  closeSheet('oInlineCust');
+  // Auto-select the new customer
+  if(data){
+    setTimeout(()=>{
+      const sel=document.getElementById('invCustSel');
+      if(sel){
+        for(let o of sel.options){if(o.getAttribute('data-n')===name){sel.value=o.value;break;}}
+        onCustSel();
+      }
+    },200);
+  }
+  toast('Customer ditambahkan & dipilih ✓');
+}
+
+// ── DISCOUNTS ──────────────────────────────────
+function renderDiscounts(){
+  const grid=document.getElementById('discGrid');if(!grid)return;
+  if(!discounts.length){grid.innerHTML='<div style="color:var(--muted);padding:20px;font-size:13px">Belum ada potongan harga. Klik + Tambah.</div>';return;}
+  grid.innerHTML=discounts.map(d=>`
+    <div class="disc-card">
+      <div class="disc-card-info">
+        <div class="name">${d.name}</div>
+        <div class="val">${d.type==='persen'?d.value+'%':'Rp '+d.value.toLocaleString('id-ID')}</div>
+      </div>
+      <div class="disc-card-acts">
+        <button class="btn btn-s btn-sm" onclick="openEditDisc('${d.id}')">✏️</button>
+        <button class="btn btn-d btn-sm" onclick="deleteDiscById('${d.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function renderDiscSelRow(){
+  const row=document.getElementById('discSelRow');if(!row)return;
+  row.innerHTML=discounts.map(d=>`<span class="disc-tag ${selectedDiscs.includes(d.id)?'active':''}" onclick="toggleDisc('${d.id}')">${d.name} (${d.type==='persen'?d.value+'%':formatRp(d.value)})</span>`).join('');
+}
+function toggleDisc(id){
+  if(selectedDiscs.includes(id))selectedDiscs=selectedDiscs.filter(x=>x!==id);
+  else selectedDiscs.push(id);
+  renderDiscSelRow();updateSubtotal();
+}
+function calcTotalDisc(sub){
+  return selectedDiscs.reduce((total,id)=>{
+    const d=discounts.find(x=>x.id===id);if(!d)return total;
+    return total+(d.type==='persen'?Math.round(sub*d.value/100):d.value);
+  },0);
+}
+function openAddDisc(){
+  document.getElementById('discTitle').textContent='Tambah Potongan';
+  document.getElementById('discEditId').value='';
+  document.getElementById('discName').value='';document.getElementById('discVal').value='';
+  document.getElementById('discType').value='nominal';
+  document.getElementById('discDel').style.display='none';
+  document.getElementById('oDisc').classList.add('show');
+}
+function openEditDisc(id){
+  const d=discounts.find(x=>x.id===id);if(!d)return;
+  document.getElementById('discTitle').textContent='Edit Potongan';
+  document.getElementById('discEditId').value=id;
+  document.getElementById('discName').value=d.name;
+  document.getElementById('discType').value=d.type;
+  document.getElementById('discVal').value=d.value;
+  document.getElementById('discDel').style.display='block';
+  document.getElementById('oDisc').classList.add('show');
+}
+async function saveDiscount(){
+  const name=document.getElementById('discName').value.trim();
+  const val=parseFloat(document.getElementById('discVal').value)||0;
+  if(!name){toast('Nama potongan wajib diisi');return;}
+  const payload={name,type:document.getElementById('discType').value,value:val};
+  const eid=document.getElementById('discEditId').value;
+  if(eid)await SB.from('discounts').update(payload).eq('id',eid);
+  else await SB.from('discounts').insert(payload);
+  closeSheet('oDisc');await loadDiscounts();toast('Potongan disimpan ✓');
+}
+async function deleteDiscById(id){
+  if(!confirm('Hapus potongan ini?'))return;
+  await SB.from('discounts').delete().eq('id',id);
+  await loadDiscounts();toast('Dihapus');
+}
+async function deleteDiscount(){await deleteDiscById(document.getElementById('discEditId').value);closeSheet('oDisc');}
+
+// ── INVOICE ────────────────────────────────────
+function calcDueDate(createdAt,termin){
+  if(!termin||termin==='COD')return null;
+  const days=parseInt(termin)||0;
+  const d=new Date(createdAt);d.setDate(d.getDate()+days);
+  return d;
+}
+function isOverdue(inv){
+  if(inv.is_paid)return false;
+  const due=calcDueDate(inv.created_at,inv.termin);
+  if(!due)return false;
+  return due<new Date();
+}
+function checkOverdue(){
+  const cnt=invoices.filter(i=>isOverdue(i)).length;
+  const tag=document.getElementById('overdueTag');
+  if(tag)tag.innerHTML=cnt>0?`<span class="notif-dot"></span>`:'';
+}
+function renderInvoices(){
+  const tbody=document.getElementById('invBody');if(!tbody)return;
+  const dateFrom=document.getElementById('invFrom').value;
+  const dateTo=document.getElementById('invTo').value;
+  const custF=(document.getElementById('invCustF')?.value||'').toLowerCase();
+  let f=invoices;
+  if(invFilter==='lunas')f=f.filter(i=>i.is_paid);
+  else if(invFilter==='belum')f=f.filter(i=>!i.is_paid);
+  else if(invFilter==='overdue')f=f.filter(i=>isOverdue(i));
+  if(dateFrom)f=f.filter(i=>new Date(i.created_at)>=new Date(dateFrom));
+  if(dateTo)f=f.filter(i=>new Date(i.created_at)<=new Date(dateTo+'T23:59:59'));
+  if(custF)f=f.filter(i=>i.customer_name.toLowerCase().includes(custF));
+  if(!f.length){tbody.innerHTML='<tr><td colspan="8" class="tbl-empty">Belum ada faktur.</td></tr>';return;}
+  tbody.innerHTML=f.map(inv=>{
+    const dt=new Date(inv.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    const due=calcDueDate(inv.created_at,inv.termin);
+    const dueStr=due?due.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'–';
+    const od=isOverdue(inv);
+    const statusCls=inv.is_paid?'lunas':od?'overdue':'belum';
+    const statusLbl=inv.is_paid?'✅ Lunas':od?'🔴 Jatuh Tempo':'⏳ Belum';
+    return `<tr>
+      <td><div style="font-weight:700;color:var(--p);font-size:12px">${inv.invoice_number}</div></td>
+      <td><div style="font-weight:500">${inv.customer_name}</div>${inv.customer_toko?`<div style="font-size:10px;color:var(--muted)">${inv.customer_toko}</div>`:''}</td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${dt}</td>
+      <td style="font-size:12px">${inv.termin||'COD'}</td>
+      <td style="font-size:11px;color:${od?'var(--danger)':'var(--muted)'};white-space:nowrap">${dueStr}</td>
+      <td style="text-align:right;font-weight:700">${formatRp(inv.total_amount)}</td>
+      <td><span class="bdg ${statusCls}">${statusLbl}</span></td>
+      <td class="acts">
+        <button class="btn btn-s btn-sm" onclick="openInvDetail('${inv.id}')">🧾</button>
+        ${!inv.is_paid?`<button class="btn btn-g btn-sm" onclick="openLunas('${inv.id}')">💳</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+function setInvF(f){invFilter=f;['all','lunas','belum','overdue'].forEach(x=>document.getElementById('if-'+x).classList.toggle('on',x===f));renderInvoices();}
+
+// CREATE INVOICE
+function openCreateInv(){
+  invItems=[{id:Date.now(),productId:'',qty:1,price:0}];
+  selectedDiscs=[];priceMode='shopee';
+  ['shopee','grosir','satuan','custom'].forEach(x=>document.getElementById('pm-'+x).classList.toggle('active',x==='shopee'));
+  ['invCName','invCToko','invCAddr','invNote'].forEach(id=>document.getElementById(id).value='');
+  ['invCName','invCToko','invCAddr'].forEach(id=>document.getElementById(id).disabled=false);
+  document.getElementById('invCustSel').value='';
+  document.getElementById('invTermin').value='COD';
+  renderInvItems();renderDiscSelRow();updateSubtotal();
+  document.getElementById('oInv').classList.add('show');
+}
+function setPriceMode(m){
+  priceMode=m;
+  ['shopee','grosir','satuan','custom'].forEach(x=>document.getElementById('pm-'+x).classList.toggle('active',x===m));
+  invItems.forEach(i=>{if(i.productId&&m!=='custom'){const p=products.find(x=>x.id===i.productId);if(p)i.price=getPrice(p,m);}});
+  renderInvItems();updateSubtotal();
+}
+function getPrice(p,m){if(m==='shopee')return p.price_shopee||0;if(m==='grosir')return p.price_grosir||0;if(m==='satuan')return p.price_satuan||0;return 0;}
+function renderInvItems(){
+  document.getElementById('invItemsCon').innerHTML=invItems.map(item=>{
+    const opts=products.map(p=>`<option value="${p.id}" ${p.id===item.productId?'selected':''}>${p.name}${p.variant?' · '+p.variant:''} (stk:${p.stock})</option>`).join('');
+    const ro=priceMode!=='custom';
+    return `<div class="item-row" id="ir-${item.id}">
+      <select onchange="updInvItem(${item.id},'prod',this.value)"><option value="">-- Pilih --</option>${opts}</select>
+      <input class="item-qty" type="number" value="${item.qty}" min="1" onchange="updInvItem(${item.id},'qty',this.value)">
+      <input class="item-price" type="number" value="${item.price||''}" min="0" placeholder="Harga" ${ro?'readonly style="background:var(--p-pale)"':''} onchange="updInvItem(${item.id},'price',this.value)">
+      <button class="item-del" onclick="remInvItem(${item.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+function updInvItem(id,f,v){
+  const i=invItems.find(x=>x.id===id);if(!i)return;
+  if(f==='prod'){i.productId=v;if(v&&priceMode!=='custom'){const p=products.find(x=>x.id===v);if(p)i.price=getPrice(p,priceMode);}renderInvItems();}
+  if(f==='qty')i.qty=parseInt(v)||1;
+  if(f==='price')i.price=parseInt(v)||0;
+  updateSubtotal();
+}
+function addInvItem(){invItems.push({id:Date.now(),productId:'',qty:1,price:0});renderInvItems();updateSubtotal();}
+function remInvItem(id){if(invItems.length===1){toast('Minimal 1 produk');return;}invItems=invItems.filter(i=>i.id!==id);renderInvItems();updateSubtotal();}
+function updateSubtotal(){
+  const sub=invItems.reduce((s,i)=>s+(i.qty*i.price),0);
+  const disc=calcTotalDisc(sub);
+  const total=Math.max(0,sub-disc);
+  document.getElementById('invSubDisp').textContent=formatRp(sub);
+  document.getElementById('invDiscDisp').textContent='− '+formatRp(disc);
+  document.getElementById('invTotalDisp').textContent=formatRp(total);
+}
+async function saveInvoice(){
+  const custName=document.getElementById('invCName').value.trim();
+  if(!custName){toast('Nama customer wajib diisi');return;}
+  const valid=invItems.filter(i=>i.productId&&i.qty>0);
+  if(!valid.length){toast('Pilih minimal 1 produk');return;}
+  for(const item of valid){
+    const p=products.find(x=>x.id===item.productId);
+    if(item.qty>p.stock){toast(`Stok ${p.name} tidak cukup (ada:${p.stock})`);return;}
+  }
+  const btn=document.getElementById('invSaveBtn');btn.disabled=true;btn.textContent='Menyimpan...';
+  const sub=valid.reduce((s,i)=>s+(i.qty*i.price),0);
+  const disc=calcTotalDisc(sub);
+  const total=Math.max(0,sub-disc);
+  const totalModal=valid.reduce((s,i)=>{const p=products.find(x=>x.id===i.productId);return s+(i.qty*(p?.price_modal||0));},0);
+  const invNum=await genInvNum();
+  const termin=document.getElementById('invTermin').value;
+  const{data:inv,error}=await SB.from('invoices').insert({invoice_number:invNum,customer_name:custName,customer_toko:document.getElementById('invCToko').value.trim()||null,customer_address:document.getElementById('invCAddr').value.trim()||null,source:'gudang',subtotal:sub,discount:disc,total_amount:total,total_modal:totalModal,price_mode:priceMode,termin,is_paid:termin==='COD',note:document.getElementById('invNote').value.trim()||null,created_by:myName,disc_ids:selectedDiscs}).select().single();
+  if(error){toast('Gagal menyimpan');btn.disabled=false;btn.textContent='Simpan Faktur';return;}
+  await SB.from('invoice_items').insert(valid.map(i=>({invoice_id:inv.id,product_id:i.productId,quantity:i.qty,unit_price:i.price,subtotal:i.qty*i.price,unit_modal:products.find(x=>x.id===i.productId)?.price_modal||0})));
+  for(const item of valid){
+    const p=products.find(x=>x.id===item.productId);
+    const before=p.stock,after=before-item.qty;
+    await SB.from('products').update({stock:after,updated_at:new Date().toISOString()}).eq('id',p.id);
+    await addLog(p.id,'gudang','reduce',item.qty,before,after,`Faktur ${invNum}`);
+    p.stock=after;
+  }
+  btn.disabled=false;btn.textContent='Simpan Faktur';
+  closeSheet('oInv');renderProducts();await loadInvoices();toast(`Faktur ${invNum} dibuat ✓`);
+}
+async function genInvNum(){
+  const d=new Date();
+  const ymd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const{count}=await SB.from('invoices').select('*',{count:'exact',head:true}).like('invoice_number',`INV-${ymd}-%`);
+  return `INV-${ymd}-${String((count||0)+1).padStart(3,'0')}`;
+}
+
+// PELUNASAN
+function openLunas(id){
+  const inv=invoices.find(x=>x.id===id);if(!inv)return;
+  document.getElementById('lunasId').value=id;
+  document.getElementById('payMethod').value='Cash';
+  document.getElementById('lunasNote').value='';
+  document.getElementById('pay-cash').className='pay-btn sel';
+  document.getElementById('pay-transfer').className='pay-btn';
+  const due=calcDueDate(inv.created_at,inv.termin);
+  document.getElementById('lunasInfo').innerHTML=`<strong>${inv.invoice_number}</strong><br>${inv.customer_name}<br>Total: <strong>${formatRp(inv.total_amount)}</strong>${due?`<br>Jatuh Tempo: ${due.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}`:''}`;
+  document.getElementById('oLunas').classList.add('show');
+}
+function selPay(m){
+  document.getElementById('payMethod').value=m;
+  document.getElementById('pay-cash').className='pay-btn'+(m==='Cash'?' sel':'');
+  document.getElementById('pay-transfer').className='pay-btn'+(m==='Transfer'?' sel':'');
+}
+async function processLunas(){
+  const id=document.getElementById('lunasId').value;
+  await SB.from('invoices').update({is_paid:true,paid_method:document.getElementById('payMethod').value,paid_note:document.getElementById('lunasNote').value.trim()||null,paid_at:new Date().toISOString()}).eq('id',id);
+  closeSheet('oLunas');await loadInvoices();toast('Faktur ditandai lunas ✓');
+}
+
+// INVOICE DETAIL / PRINT
+function openInvDetail(id){
+  currentInvId=id;const inv=invoices.find(x=>x.id===id);if(!inv)return;
+  const S=cfg;
+  const dt=new Date(inv.created_at);
+  const dtStr=dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const due=calcDueDate(inv.created_at,inv.termin);
+  const dueStr=due?due.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null;
+  const logoH=S.togLogo&&S.logoUrl?`<img src="${S.logoUrl}" style="height:48px;border-radius:8px;margin-bottom:6px;display:block" onerror="this.style.display='none'">`:'';
+  const nameH=S.togStoreName!==false?`<div class="print-brand">${S.storeName||'Oraiste Beauty'}<small>${S.togTagline!==false?S.storeSub||'':'&nbsp;'}</small></div>`:`<div class="print-brand">Oraiste Beauty</div>`;
+  const addrH=S.togAddr&&S.storeAddr?`<div style="font-size:10px;color:var(--muted);margin-top:3px">${S.storeAddr}</div>`:'';
+  const phoneH=S.togPhone&&S.storePhone?`<div style="font-size:10px;color:var(--muted)">WA: ${S.storePhone}</div>`:'';
+  const rows=(inv.invoice_items||[]).map(item=>`<tr>
+    <td><div style="font-weight:600">${item.products?.name||'–'}</div>${item.products?.variant?`<div style="font-size:10px;color:var(--muted)">${item.products.variant}</div>`:''}</td>
+    <td class="tc">${item.products?.unit||'PCS'}</td>
+    <td class="tc">${item.quantity}</td>
+    <td class="tr">${formatRp(item.unit_price)}</td>
+    <td class="tr">${formatRp(item.subtotal)}</td>
+  </tr>`).join('');
+  const discH=inv.discount>0?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--muted)">Potongan</span><span style="color:var(--danger)">− ${formatRp(inv.discount)}</span></div>`:'';
+  const ttdH=S.togTTD?`<div class="ttd-row"><div class="ttd-box"><div style="font-size:12px;margin-bottom:2px">Penjual</div><div class="ttd-line">${S.storeName||'Oraiste Beauty'}</div></div><div class="ttd-box"><div style="font-size:12px;margin-bottom:2px">Pembeli</div><div class="ttd-line">${inv.customer_name}</div></div></div>`:'';
+  document.getElementById('printContent').innerHTML=`<div class="print-doc">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+      <div>${logoH}${nameH}${addrH}${phoneH}</div>
+      <div style="text-align:right">
+        <div style="font-size:16px;font-weight:700;color:var(--p)">${inv.invoice_number}</div>
+        <div style="font-size:11px;color:var(--muted)">${dtStr}</div>
+        ${S.togTermin&&inv.termin?`<div style="font-size:11px;color:var(--muted)">Termin: ${inv.termin}</div>`:''}
+        ${S.togTermin&&dueStr?`<div style="font-size:11px;color:var(--danger);font-weight:600">Jatuh Tempo: ${dueStr}</div>`:''}
+        ${S.togStatus?`<div style="margin-top:6px"><span class="stamp ${inv.is_paid?'lunas':'belum'}">${inv.is_paid?'LUNAS':'BELUM LUNAS'}</span></div>`:''}
+      </div>
+    </div>
+    <hr class="pd">
+    <div style="margin-bottom:14px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Kepada</div>
+      <div style="font-size:14px;font-weight:700">${inv.customer_name}</div>
+      ${inv.customer_toko?`<div style="font-size:11px;color:var(--muted)">${inv.customer_toko}</div>`:''}
+      ${S.togCustAddr&&inv.customer_address?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${inv.customer_address}</div>`:''}
+    </div>
+    <table class="ptbl">
+      <thead><tr><th>Produk</th><th class="tc">Satuan</th><th class="tc">Qty</th><th class="tr">Harga</th><th class="tr">Subtotal</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="overflow:hidden;margin-bottom:16px">
+      <div class="total-box">${discH}<div class="tl">Total</div><div class="tv">${formatRp(inv.total_amount)}</div></div>
+    </div>
+    ${inv.is_paid&&inv.paid_method?`<div style="font-size:11px;color:var(--ok);margin-bottom:8px">✅ Lunas via ${inv.paid_method}${inv.paid_note?' — '+inv.paid_note:''}</div>`:''}
+    ${inv.note?`<div style="font-size:11px;color:var(--muted);background:var(--cream);border-radius:7px;padding:9px 11px;margin-bottom:12px">📝 ${inv.note}</div>`:''}
+    ${S.invFooter?`<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px;font-style:italic">${S.invFooter}</div>`:''}
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:6px">Dibuat oleh ${inv.created_by} · ${dtStr}</div>
+    ${ttdH}
+  </div>`;
+  document.getElementById('printArea').style.display='block';
+}
+function closePrint(){document.getElementById('printArea').style.display='none';}
+function shareWA(){
+  const inv=invoices.find(x=>x.id===currentInvId);if(!inv)return;
+  const S=cfg;
+  const items=(inv.invoice_items||[]).map(i=>`• ${i.products?.name||'–'}${i.products?.unit?' ('+i.products.unit+')':''} x${i.quantity} = ${formatRp(i.subtotal)}`).join('\n');
+  const due=calcDueDate(inv.created_at,inv.termin);
+  const dueStr=due?`\nJatuh Tempo: *${due.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}*`:'';
+  const disc=inv.discount>0?`\nPotongan: -${formatRp(inv.discount)}`:'';
+  const text=`*${inv.invoice_number}*\n*${S.storeName||'Oraiste Beauty'}*\n\nHi ${inv.customer_name}${inv.customer_toko?' ('+inv.customer_toko+')':''},\n\nBerikut detail pesanan Anda:\n\n${items}${disc}\n\n*Total: ${formatRp(inv.total_amount)}*\nTermin: ${inv.termin||'COD'}${dueStr}\nStatus: ${inv.is_paid?'✅ LUNAS':'⏳ BELUM LUNAS'}\n\n${S.invFooter||'Terima kasih!'}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
+}
+
+// ── PROFIT / LOSS ──────────────────────────────
+function setPeriod(p){
+  plPeriod=p;
+  ['day','week','month'].forEach(x=>{const el=document.getElementById('pt-'+x);if(el)el.classList.toggle('on',x===p&&p!=='custom');});
+  renderPL();
+}
+function getPeriodRange(){
+  if(plPeriod==='custom'){
+    const f=document.getElementById('plFrom').value,t=document.getElementById('plTo').value;
+    return{start:f?new Date(f):new Date(0),end:t?new Date(t+'T23:59:59'):new Date()};
+  }
+  const now=new Date();let start=new Date();
+  if(plPeriod==='day')start=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  else if(plPeriod==='week'){const d=now.getDay();start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-(d===0?6:d-1));}
+  else start=new Date(now.getFullYear(),now.getMonth(),1);
+  return{start,end:now};
+}
+function renderPL(){
+  const{start,end}=getPeriodRange();
+  const custF=document.getElementById('plCustF')?.value||'';
+  let f=invoices.filter(inv=>{
+    const dt=new Date(inv.created_at);
+    return dt>=start&&dt<=end&&(!custF||inv.customer_name===custF);
+  });
+  const rev=f.reduce((s,i)=>s+(i.total_amount||0),0);
+  const modal=f.reduce((s,i)=>s+(i.total_modal||0),0);
+  const laba=rev-modal;
+  const margin=rev>0?((laba/rev)*100).toFixed(1):0;
+  const plS=document.getElementById('plStats');
+  if(plS)plS.innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">Total Penjualan</div><div class="stat-val">${formatRp(rev)}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Total Modal</div><div class="stat-val">${formatRp(modal)}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Laba Bersih</div><div class="stat-val ${laba>=0?'green':'red'}">${formatRp(laba)}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Margin</div><div class="stat-val gold">${margin}%</div></div>
+    <div class="stat-card"><div class="stat-lbl">Transaksi</div><div class="stat-val">${f.length}</div></div>`;
+  const tbody=document.getElementById('plBody');if(!tbody)return;
+  if(!f.length){tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">Belum ada transaksi.</td></tr>';}
+  else tbody.innerHTML=f.map(inv=>{
+    const r=inv.total_amount||0,m=inv.total_modal||0,profit=r-m;
+    const dt=new Date(inv.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    return `<tr><td style="font-weight:700;color:var(--p)">${inv.invoice_number}</td><td>${inv.customer_name}</td><td style="color:var(--muted);font-size:11px">${dt}</td><td style="text-align:right">${formatRp(r)}</td><td style="text-align:right;color:var(--muted)">${formatRp(m)}</td><td style="text-align:right;font-weight:700;color:${profit>=0?'var(--ok)':'var(--danger)'}">${formatRp(profit)}</td></tr>`;
+  }).join('');
+  // Chart
+  renderPlChart(f);
+}
+let plChartInst=null;
+function renderPlChart(data){
+  const ctx=document.getElementById('plChart');if(!ctx)return;
+  const labels=data.slice(0,20).reverse().map(i=>{const d=new Date(i.created_at);return d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});});
+  const revData=data.slice(0,20).reverse().map(i=>i.total_amount||0);
+  const modalData=data.slice(0,20).reverse().map(i=>i.total_modal||0);
+  const labaData=revData.map((r,i)=>r-modalData[i]);
+  if(plChartInst)plChartInst.destroy();
+  plChartInst=new Chart(ctx,{
+    data:{labels,datasets:[
+      {type:'bar',label:'Pendapatan',data:revData,backgroundColor:'rgba(124,92,191,.25)',borderColor:'rgba(124,92,191,.7)',borderWidth:1.5,borderRadius:4},
+      {type:'bar',label:'Modal',data:modalData,backgroundColor:'rgba(61,138,94,.2)',borderColor:'rgba(61,138,94,.6)',borderWidth:1.5,borderRadius:4},
+      {type:'line',label:'Laba',data:labaData,borderColor:'#b07d00',backgroundColor:'rgba(176,125,0,.08)',borderWidth:2,pointRadius:3,tension:.4,fill:true}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{family:'DM Sans',size:11}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'Rp '+v.toLocaleString('id-ID'),font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+// EXPORT PL PDF
+function exportPlPdf(){
+  const{start,end}=getPeriodRange();
+  const custF=document.getElementById('plCustF')?.value||'';
+  let f=invoices.filter(inv=>{
+    const dt=new Date(inv.created_at);
+    return dt>=start&&dt<=end&&(!custF||inv.customer_name===custF);
+  });
+  const rev=f.reduce((s,i)=>s+(i.total_amount||0),0);
+  const modal=f.reduce((s,i)=>s+(i.total_modal||0),0);
+  const laba=rev-modal;
+  const margin=rev>0?((laba/rev)*100).toFixed(1):0;
+  const S=cfg;
+  const rows=f.map(inv=>{
+    const r=inv.total_amount||0,m=inv.total_modal||0,p=r-m;
+    const dt=new Date(inv.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    return `<tr><td>${inv.invoice_number}</td><td>${inv.customer_name}</td><td>${dt}</td><td style="text-align:right">${formatRp(r)}</td><td style="text-align:right;color:var(--muted)">${formatRp(m)}</td><td style="text-align:right;font-weight:700;color:${p>=0?'var(--ok)':'var(--danger)'}">${formatRp(p)}</td></tr>`;
+  }).join('');
+  const periodLbl=plPeriod==='day'?'Hari Ini':plPeriod==='week'?'Minggu Ini':plPeriod==='month'?'Bulan Ini':'Custom';
+  document.getElementById('printContent').innerHTML=`<div class="print-doc">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        ${S.logoUrl?`<img src="${S.logoUrl}" style="height:40px;border-radius:7px;margin-bottom:6px;display:block" onerror="this.style.display='none'">`:''}
+        <div class="print-brand">${S.storeName||'Oraiste Beauty'}<small>${S.storeSub||''}</small></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:700">Laporan Laba Rugi</div>
+        <div style="font-size:11px;color:var(--muted)">Periode: ${periodLbl}</div>
+        <div style="font-size:11px;color:var(--muted)">Dicetak: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+    </div>
+    <hr class="pd">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--p-pale);border-radius:10px;padding:12px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Penjualan</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600">${formatRp(rev)}</div></div>
+      <div style="background:#eaf3ee;border-radius:10px;padding:12px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Modal</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600">${formatRp(modal)}</div></div>
+      <div style="background:${laba>=0?'#e6f9ee':' #ffeaea'};border-radius:10px;padding:12px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Laba Bersih</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:${laba>=0?'var(--ok)':'var(--danger)'}">${formatRp(laba)}</div></div>
+      <div style="background:#fff8e1;border-radius:10px;padding:12px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Margin</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold)">${margin}%</div></div>
+    </div>
+    <table class="ptbl"><thead><tr><th>Faktur</th><th>Customer</th><th>Tanggal</th><th style="text-align:right">Pendapatan</th><th style="text-align:right">Modal</th><th style="text-align:right">Laba</th></tr></thead><tbody>${rows||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Tidak ada data</td></tr>'}</tbody></table>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:16px">Dicetak dari ${S.storeName||'Oraiste Beauty'} · ${new Date().toLocaleString('id-ID')}</div>
+  </div>`;
+  document.getElementById('printArea').style.display='block';
+}
+
+// ── HELPERS ────────────────────────────────────
+function adj(id,dir){const el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)+dir);}
+function preventBgClose(e){/* modals only close via X button */}
+function closeSheet(id){document.getElementById(id).classList.remove('show');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function emj(n){
+  n=n.toLowerCase();
+  if(n.includes('serum'))return'💧';if(n.includes('sunscreen')||n.includes('spf'))return'☀️';
+  if(n.includes('toner')||n.includes('essence'))return'🧴';if(n.includes('mask')||n.includes('masker'))return'🎭';
+  if(n.includes('moisturizer')||n.includes('cream')||n.includes('krim'))return'🧼';
+  if(n.includes('lip')||n.includes('bibir'))return'💄';if(n.includes('cleanser')||n.includes('sabun')||n.includes('wash'))return'🫧';
+  if(n.includes('eye')||n.includes('mata'))return'👁️';return'✨';
+}
+function formatRp(n){return'Rp '+(n||0).toLocaleString('id-ID');}
+
+// ── INIT ───────────────────────────────────────
+(async()=>{
+  const{data:{session}}=await SB.auth.getSession();
+  if(session?.user)await initApp(session.user);
+  document.getElementById('lPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('rPass').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister();});
+})();
+</script>
+</body>
+</html>
