@@ -567,9 +567,18 @@ hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
         <div><label class="flabel">Varian (opsional)</label><input class="fi" id="inpVar" placeholder="30ml"></div>
         <div><label class="flabel">Satuan</label><select class="fi" id="inpUnit"><option>PCS</option><option>Lusin</option><option>Pack</option><option>Box</option><option>Botol</option><option>Sachet</option></select></div>
       </div>
-      <label class="flabel">Foto Produk (URL)</label>
-      <input class="fi" id="inpImg" placeholder="https://i.imgur.com/xxx.jpg" oninput="prevProdImg()">
-      <div id="imgPrevWrap" style="display:none;margin-bottom:11px"><img id="imgPrevEl" style="width:80px;height:80px;border-radius:9px;object-fit:cover"></div>
+      <label class="flabel">Foto Produk</label>
+      <div id="imgUploadArea" style="border:2px dashed var(--border);border-radius:11px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:11px" onclick="document.getElementById('inpImgFile').click()" ondragover="event.preventDefault();this.style.borderColor='var(--p)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleImgDrop(event)">
+        <div id="imgUploadPlaceholder"><div style="font-size:28px;margin-bottom:6px">📷</div><div style="font-size:12px;color:var(--muted)">Klik atau drag foto ke sini</div><div style="font-size:10px;color:var(--muted);margin-top:2px">JPG, PNG, WEBP • Maks. 2MB</div></div>
+        <div id="imgPrevWrap" style="display:none"><img id="imgPrevEl" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px"><div style="font-size:11px;color:var(--muted);margin-top:6px" id="imgFileName"></div></div>
+        <div id="imgUploadProgress" style="display:none;margin-top:8px"><div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="imgProgressBar" style="height:100%;background:var(--p);width:0%;transition:width .3s"></div></div><div style="font-size:11px;color:var(--muted);margin-top:4px" id="imgProgressText">Mengupload...</div></div>
+      </div>
+      <input type="file" id="inpImgFile" accept="image/*" style="display:none" onchange="handleImgSelect(event)">
+      <input type="hidden" id="inpImg">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:11px">
+        <span style="font-size:11px;color:var(--muted)">atau pakai URL:</span>
+        <input class="fi" id="inpImgUrl" placeholder="https://..." style="flex:1;margin-bottom:0;font-size:12px;padding:7px 10px" oninput="handleImgUrl()">
+      </div>
       <label class="flabel">Harga</label>
       <div class="price-grid">
         <div class="price-box"><div class="price-box-lbl">💰 Modal</div><input type="number" id="inpModal" placeholder="0" min="0"></div>
@@ -978,11 +987,14 @@ function setFilter(f){activeFilter=f;['all','low','zero'].forEach(x=>document.ge
 function openAdd(){
   document.getElementById('addTitle').textContent='Tambah Produk';
   document.getElementById('editId').value='';
-  ['inpName','inpSku','inpVar','inpImg','inpModal','inpPShopee','inpPGrosir','inpPSatuan'].forEach(id=>document.getElementById(id).value='');
+  ['inpName','inpSku','inpVar','inpImg','inpImgUrl','inpModal','inpPShopee','inpPGrosir','inpPSatuan'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inpUnit').value='PCS';
   document.getElementById('inpStock').value='0';
   document.getElementById('delProdBtn').style.display='none';
   document.getElementById('imgPrevWrap').style.display='none';
+  document.getElementById('imgUploadPlaceholder').style.display='block';
+  document.getElementById('imgUploadProgress').style.display='none';
+  document.getElementById('imgUploadArea').style.borderColor='var(--border)';
   document.getElementById('oAdd').classList.add('show');
 }
 function openEdit(id){
@@ -1000,20 +1012,69 @@ function openEdit(id){
   document.getElementById('inpPSatuan').value=p.price_satuan||'';
   document.getElementById('inpStock').value=p.stock||0;
   document.getElementById('delProdBtn').style.display='block';
-  const iw=document.getElementById('imgPrevWrap');
-  if(p.image_url){document.getElementById('imgPrevEl').src=p.image_url;iw.style.display='block';}else{iw.style.display='none';}
+  document.getElementById('inpImgUrl').value='';
+  document.getElementById('imgUploadProgress').style.display='none';
+  showImgPreview(p.image_url||null, p.image_url?'Foto tersimpan':'');
   document.getElementById('oAdd').classList.add('show');
 }
-function prevProdImg(){
-  const url=document.getElementById('inpImg').value.trim();
-  const w=document.getElementById('imgPrevWrap');
-  if(url){document.getElementById('imgPrevEl').src=url;w.style.display='block';}else{w.style.display='none';}
+function handleImgUrl(){
+  const url=document.getElementById('inpImgUrl').value.trim();
+  document.getElementById('inpImg').value=url;
+  showImgPreview(url,'URL gambar');
 }
+function handleImgDrop(e){
+  e.preventDefault();
+  document.getElementById('imgUploadArea').style.borderColor='var(--border)';
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('image/'))uploadImgFile(file);
+}
+function handleImgSelect(e){
+  const file=e.target.files[0];
+  if(file)uploadImgFile(file);
+}
+async function uploadImgFile(file){
+  if(file.size>2*1024*1024){toast('Ukuran foto maks. 2MB');return;}
+  const ext=file.name.split('.').pop();
+  const fname=`product_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+  // Show progress
+  document.getElementById('imgUploadPlaceholder').style.display='none';
+  document.getElementById('imgPrevWrap').style.display='none';
+  document.getElementById('imgUploadProgress').style.display='block';
+  document.getElementById('imgProgressBar').style.width='30%';
+  document.getElementById('imgProgressText').textContent='Mengupload...';
+  try{
+    const{data,error}=await SB.storage.from('product-images').upload(fname,file,{cacheControl:'3600',upsert:false});
+    if(error)throw error;
+    document.getElementById('imgProgressBar').style.width='100%';
+    document.getElementById('imgProgressText').textContent='Upload selesai!';
+    const{data:urlData}=SB.storage.from('product-images').getPublicUrl(fname);
+    const publicUrl=urlData.publicUrl;
+    document.getElementById('inpImg').value=publicUrl;
+    document.getElementById('inpImgUrl').value='';
+    setTimeout(()=>{
+      document.getElementById('imgUploadProgress').style.display='none';
+      showImgPreview(publicUrl,file.name);
+    },500);
+  }catch(err){
+    document.getElementById('imgUploadProgress').style.display='none';
+    document.getElementById('imgUploadPlaceholder').style.display='block';
+    toast('Gagal upload: '+err.message);
+  }
+}
+function showImgPreview(url,name){
+  if(!url){document.getElementById('imgPrevWrap').style.display='none';document.getElementById('imgUploadPlaceholder').style.display='block';return;}
+  document.getElementById('imgPrevEl').src=url;
+  document.getElementById('imgFileName').textContent=name||'';
+  document.getElementById('imgPrevWrap').style.display='block';
+  document.getElementById('imgUploadPlaceholder').style.display='none';
+  document.getElementById('imgUploadProgress').style.display='none';
+}
+function prevProdImg(){/* legacy - not used */}
 async function saveProduct(){
   const name=document.getElementById('inpName').value.trim();
   if(!name){toast('Nama produk wajib diisi');return;}
   const stock=parseInt(document.getElementById('inpStock').value)||0;
-  const payload={name,sku:document.getElementById('inpSku').value.trim()||null,variant:document.getElementById('inpVar').value.trim()||null,unit:document.getElementById('inpUnit').value,image_url:document.getElementById('inpImg').value.trim()||null,stock,price_modal:parseInt(document.getElementById('inpModal').value)||null,price_shopee:parseInt(document.getElementById('inpPShopee').value)||null,price_grosir:parseInt(document.getElementById('inpPGrosir').value)||null,price_satuan:parseInt(document.getElementById('inpPSatuan').value)||null,updated_at:new Date().toISOString()};
+  const payload={name,sku:document.getElementById('inpSku').value.trim()||null,variant:document.getElementById('inpVar').value.trim()||null,unit:document.getElementById('inpUnit').value,image_url:document.getElementById('inpImg').value||null,stock,price_modal:parseInt(document.getElementById('inpModal').value)||null,price_shopee:parseInt(document.getElementById('inpPShopee').value)||null,price_grosir:parseInt(document.getElementById('inpPGrosir').value)||null,price_satuan:parseInt(document.getElementById('inpPSatuan').value)||null,updated_at:new Date().toISOString()};
   const editId=document.getElementById('editId').value;
   const btn=document.getElementById('saveProdBtn');btn.disabled=true;
   if(editId){
