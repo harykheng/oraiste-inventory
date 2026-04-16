@@ -358,6 +358,9 @@ hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
       <button class="sb-btn active" id="sb-stock" onclick="gotoView('stock')"><span class="sb-ic">📦</span>Stok Produk</button>
       <button class="sb-btn" id="sb-inv" onclick="gotoView('inv')"><span class="sb-ic">🧾</span>Faktur<span id="overdueTag"></span></button>
       <button class="sb-btn" id="sb-pl" onclick="gotoView('pl')"><span class="sb-ic">📊</span>Laba Rugi</button>
+      <div class="sb-sect">Stok</div>
+      <button class="sb-btn" id="sb-purchase" onclick="gotoView('purchase')"><span class="sb-ic">🛍️</span>Pembelian Barang</button>
+      <button class="sb-btn" id="sb-transfer" onclick="gotoView('transfer')"><span class="sb-ic">📤</span>Keluar Barang</button>
       <div class="sb-sect">Data</div>
       <button class="sb-btn" id="sb-disc" onclick="gotoView('disc')"><span class="sb-ic">🏷️</span>Potongan Harga</button>
       <button class="sb-btn" id="sb-cust" onclick="gotoView('cust')"><span class="sb-ic">👥</span>Customer</button>
@@ -469,6 +472,19 @@ hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
         </table></div>
       </div>
 
+      <!-- PURCHASE VIEW -->
+      <div id="vPurchase" style="display:none">
+        <div class="page-hdr"><h2>🛍️ Pembelian Barang</h2><button class="btn btn-p" onclick="openCreatePurchase()">+ Buat Pembelian</button></div>
+        <div class="fbar"><input type="date" class="finp" id="purFrom" onchange="renderPurchases()"><input type="date" class="finp" id="purTo" onchange="renderPurchases()"></div>
+        <div class="stats-row" id="purStats"></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>No. Pembelian</th><th>Distributor</th><th>No. SJ</th><th>Tgl</th><th>Items</th><th style="text-align:right">Total Modal</th><th>Oleh</th><th>Aksi</th></tr></thead><tbody id="purBody"><tr><td colspan="8" class="tbl-empty"><div class="spinner"></div></td></tr></tbody></table></div>
+      </div>
+      <!-- TRANSFER VIEW -->
+      <div id="vTransfer" style="display:none">
+        <div class="page-hdr"><h2>📤 Keluar Barang</h2><button class="btn btn-p" onclick="openCreateTransfer()">+ Catat Pengeluaran</button></div>
+        <div class="fbar"><input type="date" class="finp" id="trFrom" onchange="renderTransfers()"><input type="date" class="finp" id="trTo" onchange="renderTransfers()"></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tanggal</th><th>Produk</th><th>Qty</th><th>Alasan</th><th>Oleh</th><th>Catatan</th></tr></thead><tbody id="trBody"><tr><td colspan="6" class="tbl-empty"><div class="spinner"></div></td></tr></tbody></table></div>
+      </div>
       <!-- LOG VIEW -->
       <div id="vLog" style="display:none">
         <div class="page-hdr"><h2>📋 Riwayat Stok</h2></div>
@@ -489,9 +505,10 @@ hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
         <div class="settings-grid">
           <div class="set-card">
             <h3>🏪 Identitas Toko</h3>
-            <label class="flabel">Logo (URL gambar)</label>
-            <input class="fi" id="setLogo" placeholder="https://..." oninput="prevLogo()">
-            <div class="logo-prev" id="logoPrev">✨</div>
+            <label class="flabel">Logo Toko</label>
+            <div id="logoUploadArea" style="border:2px dashed var(--border);border-radius:11px;padding:14px;text-align:center;cursor:pointer;margin-bottom:10px" onclick="document.getElementById('logoFileInp').click()" ondragover="event.preventDefault()" ondrop="handleLogoDrop(event)"><div class="logo-prev" id="logoPrev">✨</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Klik atau drag gambar logo</div></div>
+            <input type="file" id="logoFileInp" accept="image/*" style="display:none" onchange="handleLogoSelect(event)">
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px"><span style="font-size:11px;color:var(--muted);flex-shrink:0">atau URL:</span><input class="fi" id="setLogo" placeholder="https://..." style="flex:1;margin-bottom:0;font-size:12px;padding:7px 10px" oninput="prevLogo()"></div>
             <div class="tog-row"><span class="tog-lbl">Tampilkan Nama Toko</span><label class="tog"><input type="checkbox" id="togStoreName" checked onchange="applySettings()"><span class="tog-sl"></span></label></div>
             <label class="flabel" style="margin-top:8px">Nama Toko</label>
             <input class="fi" id="setName" placeholder="Oraiste Beauty">
@@ -534,6 +551,7 @@ hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
     <!-- MOBILE NAV -->
     <div class="bot-nav">
       <button class="bnav-btn active" id="bn-stock" onclick="gotoView('stock')"><span class="bnav-ic">📦</span>Stok</button>
+      <button class="bnav-btn" id="bn-purchase" onclick="gotoView('purchase')"><span class="bnav-ic">🛍️</span>Beli</button>
       <button class="bnav-btn" id="bn-inv" onclick="gotoView('inv')"><span class="bnav-ic">🧾</span>Faktur</button>
       <button class="bnav-btn" id="bn-pl" onclick="gotoView('pl')"><span class="bnav-ic">📊</span>Laba</button>
       <button class="bnav-btn" id="bn-cust" onclick="gotoView('cust')"><span class="bnav-ic">👥</span>Customer</button>
@@ -742,6 +760,40 @@ hr.pd{border:none;border-top:1px solid var(--border);margin:12px 0;}
   </div>
 </div>
 
+<!-- CREATE PURCHASE SHEET -->
+<div class="overlay" id="oPurchase" onclick="preventBgClose(event)">
+  <div class="sheet"><div class="sheet-head"><div class="sheet-title" id="purTitle">Buat Pembelian</div><button class="sheet-close" onclick="closeSheet('oPurchase')">✕</button></div>
+  <div class="sbody">
+    <input type="hidden" id="purEditId">
+    <div class="two"><div><label class="flabel">Nama Distributor *</label><input class="fi" id="purDistributor" placeholder="Nama distributor/supplier"></div><div><label class="flabel">No. Surat Jalan</label><input class="fi" id="purSJ" placeholder="SJ-001 (opsional)"></div></div>
+    <label class="flabel">Tanggal Pembelian</label><input class="fi" type="date" id="purDate">
+    <label class="flabel">Produk yang Dibeli</label>
+    <div id="purItemsCon"></div>
+    <button class="add-item-btn" onclick="addPurItem()">+ Tambah Produk</button>
+    <div class="inv-total-sec"><div class="itrow"><span class="itlbl" style="font-weight:700">Total Modal</span><span class="itval big" id="purTotalDisp">Rp 0</span></div></div>
+    <label class="flabel">Catatan</label><input class="fi" id="purNote" placeholder="Opsional">
+    <div class="btn-row"><button class="bcl" onclick="closeSheet('oPurchase')">Batal</button><button class="bsv" id="purSaveBtn" onclick="savePurchase()">Simpan & Update Stok</button></div>
+  </div></div>
+</div>
+<!-- PURCHASE DETAIL SHEET -->
+<div class="overlay" id="oPurDetail" onclick="preventBgClose(event)">
+  <div class="sheet"><div class="sheet-head"><div class="sheet-title" id="purDetailTitle">Detail Pembelian</div><button class="sheet-close" onclick="closeSheet('oPurDetail')">✕</button></div>
+  <div class="sbody" id="purDetailBody"></div></div>
+</div>
+<!-- TRANSFER SHEET -->
+<div class="overlay" id="oTransfer" onclick="preventBgClose(event)">
+  <div class="sheet"><div class="sheet-head"><div class="sheet-title">Catat Keluar Barang</div><button class="sheet-close" onclick="closeSheet('oTransfer')">✕</button></div>
+  <div class="sbody">
+    <label class="flabel">Produk *</label><select class="fi" id="trProduct" onchange="onTrProductSelect()"><option value="">-- Pilih produk --</option></select>
+    <div id="trStockInfo" style="display:none;background:var(--p-pale);border-radius:9px;padding:10px 12px;margin-bottom:11px;font-size:13px"></div>
+    <div class="two"><div><label class="flabel">Jumlah *</label><input class="fi" type="number" id="trQty" placeholder="0" min="1" oninput="checkTrStock()"></div><div><label class="flabel">Tanggal</label><input class="fi" type="date" id="trDate"></div></div>
+    <label class="flabel">Alasan Keluar *</label>
+    <select class="fi" id="trReason"><option value="Rusak/Expired">Rusak / Expired</option><option value="Sample">Sample / Tester</option><option value="Hibah">Hibah / Donasi</option><option value="Retur">Retur ke Supplier</option><option value="Pemakaian Internal">Pemakaian Internal</option><option value="Lainnya">Lainnya</option></select>
+    <label class="flabel">Catatan</label><input class="fi" id="trNote" placeholder="Opsional">
+    <div id="trStockWarn" style="display:none;color:var(--danger);font-size:12px;margin-bottom:10px"></div>
+    <div class="btn-row"><button class="bcl" onclick="closeSheet('oTransfer')">Batal</button><button class="bsv" id="trSaveBtn" onclick="saveTransfer()">Simpan</button></div>
+  </div></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -750,7 +802,8 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const SB=supabase.createClient(SURL,SKEY);
 
 let me=null,myName='';
-let products=[],logs=[],invoices=[],customers=[],discounts=[];
+let products=[],logs=[],invoices=[],customers=[],discounts=[],purchases=[],transfers=[];
+let purItems=[{id:Date.now(),productId:'',qty:1,price:0}];
 let activeFilter='all',logFilter='all',invFilter='all',plPeriod='day';
 let detailId=null,currentInvId=null,viewMode='card';
 let invItems=[{id:Date.now(),productId:'',qty:1,price:0}];
@@ -800,7 +853,7 @@ async function initApp(user){
   document.getElementById('authPage').style.display='none';
   document.getElementById('appPage').style.display='block';
   loadCfg();
-  await Promise.all([loadProducts(),loadLogs(),loadInvoices(),loadCustomers(),loadDiscounts()]);
+  await Promise.all([loadProducts(),loadLogs(),loadInvoices(),loadCustomers(),loadDiscounts(),loadPurchases(),loadTransfers()]);
   checkOverdue();
 }
 
@@ -869,10 +922,10 @@ function closeSb(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('mobBg').classList.remove('show');
 }
-const viewMeta={stock:{title:'Stok Produk',fab:true},inv:{title:'Faktur Penjualan',fab:true},pl:{title:'Laba Rugi',fab:false},disc:{title:'Potongan Harga',fab:true},cust:{title:'Customer',fab:true},log:{title:'Riwayat Stok',fab:false},settings:{title:'Pengaturan',fab:false}};
+const viewMeta={stock:{title:'Stok Produk',fab:true},inv:{title:'Faktur Penjualan',fab:true},pl:{title:'Laba Rugi',fab:false},purchase:{title:'Pembelian Barang',fab:true},transfer:{title:'Keluar Barang',fab:true},disc:{title:'Potongan Harga',fab:true},cust:{title:'Customer',fab:true},log:{title:'Riwayat Stok',fab:false},settings:{title:'Pengaturan',fab:false}};
 function gotoView(v){
   currentView=v;
-  const allV=['stock','inv','pl','disc','cust','log','settings'];
+  const allV=['stock','inv','pl','purchase','transfer','disc','cust','log','settings'];
   allV.forEach(x=>{
     const el=document.getElementById('v'+x.charAt(0).toUpperCase()+x.slice(1));
     if(el)el.style.display=x===v?'block':'none';
@@ -890,12 +943,16 @@ function gotoView(v){
   if(v==='cust')renderCustomers();
   if(v==='disc')renderDiscounts();
   if(v==='settings')applyCfg();
+  if(v==='purchase')renderPurchases();
+  if(v==='transfer'){renderTransfers();populateTrProducts();}
 }
 function onFab(){
   if(currentView==='stock')openAdd();
   else if(currentView==='inv')openCreateInv();
   else if(currentView==='cust')openAddCust();
   else if(currentView==='disc')openAddDisc();
+  else if(currentView==='purchase')openCreatePurchase();
+  else if(currentView==='transfer')openCreateTransfer();
 }
 
 // ── DATA LOAD ──────────────────────────────────
@@ -931,11 +988,15 @@ function renderStockStats(){
   const total=products.reduce((s,p)=>s+p.stock,0);
   const tipis=products.filter(p=>p.stock>0&&p.stock<=5).length;
   const habis=products.filter(p=>p.stock===0).length;
+  const totalModal2=products.reduce((s,p)=>s+(p.stock*(p.price_modal||0)),0);
+  const totalNilai=products.reduce((s,p)=>s+(p.stock*(p.price_shopee||p.price_satuan||0)),0);
   document.getElementById('stockStats').innerHTML=`
     <div class="stat-card"><div class="stat-lbl">Total SKU</div><div class="stat-val">${products.length}</div></div>
     <div class="stat-card"><div class="stat-lbl">Total Stok</div><div class="stat-val">${total}</div></div>
     <div class="stat-card"><div class="stat-lbl">Stok Tipis</div><div class="stat-val red">${tipis}</div></div>
-    <div class="stat-card"><div class="stat-lbl">Stok Habis</div><div class="stat-val red">${habis}</div></div>`;
+    <div class="stat-card"><div class="stat-lbl">Stok Habis</div><div class="stat-val red">${habis}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Total Modal Stok</div><div class="stat-val gold" style="font-size:18px">${formatRp(totalModal2)}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Total Nilai Stok</div><div class="stat-val green" style="font-size:18px">${formatRp(totalNilai)}</div></div>`;
 }
 function renderProducts(){
   const q=(document.getElementById('searchInp')?.value||'').toLowerCase();
@@ -1481,7 +1542,7 @@ function openInvDetail(id){
   const dueStr=due?due.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null;
   const logoH=S.togLogo&&S.logoUrl?`<img src="${S.logoUrl}" style="height:48px;border-radius:8px;margin-bottom:6px;display:block" onerror="this.style.display='none'">`:'';
   const nameH=S.togStoreName!==false?`<div class="print-brand">${S.storeName||'Oraiste Beauty'}<small>${S.togTagline!==false?S.storeSub||'':'&nbsp;'}</small></div>`:`<div class="print-brand">Oraiste Beauty</div>`;
-  const addrH=S.togAddr&&S.storeAddr?`<div style="font-size:10px;color:var(--muted);margin-top:3px">${S.storeAddr}</div>`:'';
+  const addrH=S.togAddr&&S.storeAddr?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${S.storeAddr}</div>`:'';
   const phoneH=S.togPhone&&S.storePhone?`<div style="font-size:10px;color:var(--muted)">WA: ${S.storePhone}</div>`:'';
   const rows=(inv.invoice_items||[]).map(item=>`<tr>
     <td><div style="font-weight:600">${item.products?.name||'–'}</div>${item.products?.variant?`<div style="font-size:10px;color:var(--muted)">${item.products.variant}</div>`:''}</td>
@@ -1642,6 +1703,277 @@ function exportPlPdf(){
     <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:16px">Dicetak dari ${S.storeName||'Oraiste Beauty'} · ${new Date().toLocaleString('id-ID')}</div>
   </div>`;
   document.getElementById('printArea').style.display='block';
+}
+
+
+// ── PURCHASE ────────────────────────────────────
+async function loadPurchases(){
+  const{data}=await SB.from('purchases').select('*,purchase_items(*,products(name,variant,unit))').order('purchase_date',{ascending:false}).limit(200);
+  purchases=data||[];renderPurchases();renderPurStats();
+}
+function renderPurStats(){
+  const total=purchases.reduce((s,p)=>s+(p.total_modal||0),0);
+  const el=document.getElementById('purStats');if(!el)return;
+  el.innerHTML=`<div class="stat-card"><div class="stat-lbl">Total Pembelian</div><div class="stat-val">${purchases.length}</div></div><div class="stat-card"><div class="stat-lbl">Total Pengeluaran Modal</div><div class="stat-val gold" style="font-size:18px">${formatRp(total)}</div></div>`;
+}
+function renderPurchases(){
+  const tbody=document.getElementById('purBody');if(!tbody)return;
+  const from=document.getElementById('purFrom').value;
+  const to=document.getElementById('purTo').value;
+  let f=purchases;
+  if(from)f=f.filter(p=>p.purchase_date>=from);
+  if(to)f=f.filter(p=>p.purchase_date<=to);
+  if(!f.length){tbody.innerHTML='<tr><td colspan="8" class="tbl-empty">Belum ada pembelian.</td></tr>';return;}
+  tbody.innerHTML=f.map(p=>{
+    const items=p.purchase_items||[];
+    const dt=new Date(p.purchase_date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    return `<tr>
+      <td><div style="font-weight:700;color:var(--p)">${p.purchase_number}</div></td>
+      <td><div style="font-weight:500">${p.distributor}</div></td>
+      <td style="font-size:11px;color:var(--muted)">${p.surat_jalan||'–'}</td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${dt}</td>
+      <td style="font-size:12px">${items.length} item</td>
+      <td style="text-align:right;font-weight:700">${formatRp(p.total_modal)}</td>
+      <td style="font-size:12px">${p.created_by}</td>
+      <td class="acts">
+        <button class="btn btn-s btn-sm" onclick="openPurDetail('${p.id}')">📋</button>
+        <button class="btn btn-d btn-sm" onclick="deletePurchase('${p.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+let purItems2=[{id:Date.now(),productId:'',qty:1,price:0}];
+function openCreatePurchase(){
+  purItems2=[{id:Date.now(),productId:'',qty:1,price:0}];
+  document.getElementById('purEditId').value='';
+  document.getElementById('purTitle').textContent='Buat Pembelian';
+  document.getElementById('purDistributor').value='';
+  document.getElementById('purSJ').value='';
+  document.getElementById('purDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('purNote').value='';
+  renderPurItems();updatePurTotal();
+  document.getElementById('oPurchase').classList.add('show');
+}
+function renderPurItems(){
+  const opts=products.map(p=>`<option value="${p.id}">${p.name}${p.variant?' · '+p.variant:''} (stk:${p.stock||0})</option>`).join('');
+  document.getElementById('purItemsCon').innerHTML=purItems2.map(item=>`
+    <div class="item-row" id="pi-${item.id}">
+      <select onchange="updPurItem(${item.id},'prod',this.value)">
+        <option value="">-- Pilih produk --</option>${opts.replace(`value="${item.productId}"`,`value="${item.productId}" selected`)}
+      </select>
+      <input class="item-qty" type="number" value="${item.qty}" min="1" placeholder="Qty" onchange="updPurItem(${item.id},'qty',this.value)">
+      <input class="item-price" type="number" value="${item.price||''}" min="0" placeholder="Harga Modal" oninput="updPurItem(${item.id},'price',this.value)">
+      <button class="item-del" onclick="remPurItem(${item.id})">✕</button>
+    </div>`).join('');
+}
+function updPurItem(id,f,v){
+  const i=purItems2.find(x=>x.id===id);if(!i)return;
+  if(f==='prod'){
+    i.productId=v;
+    if(v){const p=products.find(x=>x.id===v);if(p&&p.price_modal)i.price=p.price_modal;}
+    renderPurItems();
+  }
+  if(f==='qty')i.qty=parseInt(v)||1;
+  if(f==='price')i.price=parseInt(v)||0;
+  updatePurTotal();
+}
+function addPurItem(){purItems2.push({id:Date.now(),productId:'',qty:1,price:0});renderPurItems();updatePurTotal();}
+function remPurItem(id){if(purItems2.length===1){toast('Minimal 1 produk');return;}purItems2=purItems2.filter(i=>i.id!==id);renderPurItems();updatePurTotal();}
+function updatePurTotal(){
+  const total=purItems2.reduce((s,i)=>s+(i.qty*i.price),0);
+  document.getElementById('purTotalDisp').textContent=formatRp(total);
+}
+async function genPurNum(){
+  const d=new Date();
+  const ymd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const{count}=await SB.from('purchases').select('*',{count:'exact',head:true}).like('purchase_number',`PUR-${ymd}-%`);
+  return `PUR-${ymd}-${String((count||0)+1).padStart(3,'0')}`;
+}
+async function savePurchase(){
+  const dist=document.getElementById('purDistributor').value.trim();
+  if(!dist){toast('Nama distributor wajib diisi');return;}
+  const valid=purItems2.filter(i=>i.productId&&i.qty>0);
+  if(!valid.length){toast('Pilih minimal 1 produk');return;}
+  const btn=document.getElementById('purSaveBtn');btn.disabled=true;btn.textContent='Menyimpan...';
+  const total=valid.reduce((s,i)=>s+(i.qty*i.price),0);
+  const purNum=await genPurNum();
+  const purDate=document.getElementById('purDate').value;
+  const{data:pur,error}=await SB.from('purchases').insert({
+    purchase_number:purNum,distributor:dist,
+    surat_jalan:document.getElementById('purSJ').value.trim()||null,
+    purchase_date:purDate,total_modal:total,
+    note:document.getElementById('purNote').value.trim()||null,
+    created_by:myName
+  }).select().single();
+  if(error){toast('Gagal menyimpan: '+error.message);btn.disabled=false;btn.textContent='Simpan & Update Stok';return;}
+  await SB.from('purchase_items').insert(valid.map(i=>({
+    purchase_id:pur.id,product_id:i.productId,quantity:i.qty,unit_price:i.price,subtotal:i.qty*i.price
+  })));
+  // Update stock for each item
+  for(const item of valid){
+    const p=products.find(x=>x.id===item.productId);
+    const before=p.stock||0,after=before+item.qty;
+    await SB.from('products').update({stock:after,updated_at:new Date().toISOString()}).eq('id',p.id);
+    await addLog(p.id,'gudang','add',item.qty,before,after,`Pembelian ${purNum} dari ${dist}`);
+    p.stock=after;
+  }
+  btn.disabled=false;btn.textContent='Simpan & Update Stok';
+  closeSheet('oPurchase');renderProducts();renderStockStats();await loadPurchases();
+  toast(`${purNum} disimpan — stok diperbarui ✓`);
+}
+async function deletePurchase(id){
+  if(!confirm('Hapus data pembelian ini? Stok TIDAK akan dikurangi kembali.'))return;
+  await SB.from('purchases').delete().eq('id',id);
+  await loadPurchases();toast('Data pembelian dihapus');
+}
+function openPurDetail(id){
+  const pur=purchases.find(x=>x.id===id);if(!pur)return;
+  const dt=new Date(pur.purchase_date).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const rows=(pur.purchase_items||[]).map(item=>`
+    <tr>
+      <td><div style="font-weight:500">${item.products?.name||'–'}</div>${item.products?.variant?`<div style="font-size:10px;color:var(--muted)">${item.products.variant}</div>`:''}</td>
+      <td style="text-align:center">${item.products?.unit||'PCS'}</td>
+      <td style="text-align:center">${item.quantity}</td>
+      <td style="text-align:right">${formatRp(item.unit_price)}</td>
+      <td style="text-align:right;font-weight:600">${formatRp(item.subtotal)}</td>
+    </tr>`).join('');
+  document.getElementById('purDetailTitle').textContent=pur.purchase_number;
+  document.getElementById('purDetailBody').innerHTML=`
+    <div style="background:var(--p-pale);border-radius:11px;padding:14px;margin-bottom:14px">
+      <div class="two" style="gap:14px">
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Distributor</div><div style="font-weight:600;margin-top:2px">${pur.distributor}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">No. Surat Jalan</div><div style="font-weight:600;margin-top:2px">${pur.surat_jalan||'–'}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Tanggal</div><div style="font-weight:600;margin-top:2px">${dt}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total Modal</div><div style="font-weight:700;color:var(--p);margin-top:2px">${formatRp(pur.total_modal)}</div></div>
+      </div>
+      ${pur.note?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">📝 ${pur.note}</div>`:''}
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Detail Produk</div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Produk</th><th style="text-align:center">Satuan</th><th style="text-align:center">Qty</th><th style="text-align:right">Harga Modal</th><th style="text-align:right">Subtotal</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div style="text-align:right;margin-top:12px;font-size:12px;color:var(--muted)">Dibuat oleh ${pur.created_by}</div>`;
+  document.getElementById('oPurDetail').classList.add('show');
+}
+
+// ── TRANSFER (KELUAR BARANG) ──────────────────────
+async function loadTransfers(){
+  const{data}=await SB.from('stock_transfers').select('*,products(name,variant,unit)').order('transfer_date',{ascending:false}).limit(200);
+  transfers=data||[];renderTransfers();
+}
+function populateTrProducts(){
+  const sel=document.getElementById('trProduct');if(!sel)return;
+  sel.innerHTML='<option value="">-- Pilih produk --</option>'+products.map(p=>`<option value="${p.id}">${p.name}${p.variant?' · '+p.variant:''} (stk:${p.stock||0})</option>`).join('');
+}
+function onTrProductSelect(){
+  const id=document.getElementById('trProduct').value;
+  const info=document.getElementById('trStockInfo');
+  if(!id){info.style.display='none';return;}
+  const p=products.find(x=>x.id===id);if(!p)return;
+  info.style.display='block';
+  info.innerHTML=`🏠 Stok tersedia: <strong>${p.stock||0} ${p.unit||'PCS'}</strong>`;
+  checkTrStock();
+}
+function checkTrStock(){
+  const id=document.getElementById('trProduct').value;
+  const qty=parseInt(document.getElementById('trQty').value)||0;
+  const warn=document.getElementById('trStockWarn');
+  const btn=document.getElementById('trSaveBtn');
+  if(!id||!qty){warn.style.display='none';btn.disabled=false;return;}
+  const p=products.find(x=>x.id===id);if(!p)return;
+  if(qty>(p.stock||0)){
+    warn.style.display='block';
+    warn.textContent=`⚠️ Stok tidak cukup. Tersedia: ${p.stock||0}`;
+    btn.disabled=true;
+  }else{
+    warn.style.display='none';
+    btn.disabled=false;
+  }
+}
+function renderTransfers(){
+  const tbody=document.getElementById('trBody');if(!tbody)return;
+  const from=document.getElementById('trFrom').value;
+  const to=document.getElementById('trTo').value;
+  let f=transfers;
+  if(from)f=f.filter(t=>t.transfer_date>=from);
+  if(to)f=f.filter(t=>t.transfer_date<=to);
+  if(!f.length){tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">Belum ada catatan keluar barang.</td></tr>';return;}
+  tbody.innerHTML=f.map(t=>{
+    const pname=t.products?t.products.name+(t.products.variant?` · ${t.products.variant}`:''):'–';
+    const unit=t.products?.unit||'PCS';
+    const dt=new Date(t.transfer_date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    return `<tr>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${dt}</td>
+      <td><div style="font-weight:500">${pname}</div></td>
+      <td><strong>${t.quantity}</strong> ${unit}</td>
+      <td><span class="bdg belum" style="background:#fff3e0;color:#b07d00">${t.reason}</span></td>
+      <td style="font-size:12px">${t.created_by}</td>
+      <td style="font-size:11px;color:var(--muted)">${t.note||'–'}</td>
+    </tr>`;
+  }).join('');
+}
+function openCreateTransfer(){
+  document.getElementById('trProduct').value='';
+  document.getElementById('trQty').value='';
+  document.getElementById('trDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('trReason').value='Rusak/Expired';
+  document.getElementById('trNote').value='';
+  document.getElementById('trStockInfo').style.display='none';
+  document.getElementById('trStockWarn').style.display='none';
+  document.getElementById('trSaveBtn').disabled=false;
+  populateTrProducts();
+  document.getElementById('oTransfer').classList.add('show');
+}
+async function saveTransfer(){
+  const productId=document.getElementById('trProduct').value;
+  const qty=parseInt(document.getElementById('trQty').value)||0;
+  if(!productId){toast('Pilih produk');return;}
+  if(!qty||qty<1){toast('Jumlah harus lebih dari 0');return;}
+  const p=products.find(x=>x.id===productId);
+  if(qty>(p.stock||0)){toast('Stok tidak cukup');return;}
+  const btn=document.getElementById('trSaveBtn');btn.disabled=true;
+  const reason=document.getElementById('trReason').value;
+  const trDate=document.getElementById('trDate').value;
+  const note=document.getElementById('trNote').value.trim();
+  const{error}=await SB.from('stock_transfers').insert({
+    product_id:productId,quantity:qty,reason,
+    transfer_date:trDate,note:note||null,created_by:myName
+  });
+  if(error){toast('Gagal menyimpan: '+error.message);btn.disabled=false;return;}
+  const before=p.stock,after=before-qty;
+  await SB.from('products').update({stock:after,updated_at:new Date().toISOString()}).eq('id',productId);
+  await addLog(productId,'gudang','reduce',qty,before,after,`Keluar: ${reason}${note?' — '+note:''}`);
+  p.stock=after;
+  btn.disabled=false;closeSheet('oTransfer');
+  renderProducts();renderStockStats();await loadTransfers();
+  toast(`${qty} ${p.unit||'PCS'} keluar dicatat ✓`);
+}
+
+// ── LOGO UPLOAD ──────────────────────────────────
+function handleLogoDrop(e){
+  e.preventDefault();
+  const file=e.dataTransfer?.files[0];
+  if(file&&file.type.startsWith('image/'))uploadLogoFile(file);
+}
+function handleLogoSelect(e){
+  const file=e.target.files[0];
+  if(file)uploadLogoFile(file);
+}
+async function uploadLogoFile(file){
+  if(file.size>2*1024*1024){toast('Ukuran logo maks. 2MB');return;}
+  const ext=file.name.split('.').pop();
+  const fname=`logo_${Date.now()}.${ext}`;
+  toast('Mengupload logo...');
+  try{
+    const{data,error}=await SB.storage.from('product-images').upload(fname,file,{cacheControl:'3600',upsert:false});
+    if(error)throw error;
+    const{data:urlData}=SB.storage.from('product-images').getPublicUrl(fname);
+    cfg.logoUrl=urlData.publicUrl;
+    document.getElementById('setLogo').value=cfg.logoUrl;
+    document.getElementById('logoPrev').innerHTML=`<img src="${cfg.logoUrl}" style="width:100%;height:100%;object-fit:cover">`;
+    applyCfg();toast('Logo diupload ✓ — klik Simpan untuk menyimpan pengaturan');
+  }catch(err){toast('Gagal upload logo: '+err.message);}
 }
 
 // ── HELPERS ────────────────────────────────────
